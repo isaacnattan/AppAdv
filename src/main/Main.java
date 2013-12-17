@@ -23,7 +23,6 @@ public class Main extends CTPai {
     public static final String userDefault = "Admin";
     private static String user;
     private static String pass;
-    private boolean teclouTAB = false;
 
     public static void main(String[] args) {
         // Seta LookAndFeel
@@ -62,7 +61,9 @@ public class Main extends CTPai {
             new CTViewPrincipal();
         } else {
             javax.swing.JOptionPane.showMessageDialog(null, "Opss ! Senha inválida!");
-            System.exit(0);
+            // verificar como chamar a telinha de novo
+            sessaoLogin.dispose();
+            new Main();
         }
     }
 

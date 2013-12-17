@@ -24,7 +24,7 @@ public class ModeloTabela extends AbstractTableModel {
 
     public boolean limparTabela() {
         try {
-            int tamanho = linhaTabela.length;
+            int tamanho = linhaTabela.tamanho;
             for (int i = tamanho; i > 0; i--) {
                 linhaTabela.removeLinha(0);
             }
@@ -46,7 +46,7 @@ public class ModeloTabela extends AbstractTableModel {
     
     public ArrayList<String> getAllRows(int coluna){
         ArrayList<String> allRows = new ArrayList<String>();
-        for(int i=0; i<linhaTabela.length; i++){
+        for(int i=0; i<linhaTabela.tamanho; i++){
             allRows.add(linhaTabela.obtemElementoLinha(i, coluna));
         }
         return allRows;
@@ -61,7 +61,7 @@ public class ModeloTabela extends AbstractTableModel {
 
     @Override
     public int getRowCount() {
-        return linhaTabela.length;
+        return linhaTabela.tamanho;
     }
 
     @Override

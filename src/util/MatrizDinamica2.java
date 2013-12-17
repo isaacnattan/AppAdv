@@ -7,7 +7,7 @@ import java.util.ArrayList;
  */
 public class MatrizDinamica2<T> {
     private ArrayList<ArrayList<T>> matriz;
-    public int length;
+    public int tamanho;
 
     public MatrizDinamica2() {
         matriz = new ArrayList<ArrayList<T>>();
@@ -16,7 +16,7 @@ public class MatrizDinamica2<T> {
     public void adicionaLinha(ArrayList<T> linha) {
         try {
             matriz.add(linha);
-            length = matriz.size();
+            tamanho = matriz.size();
         } catch (Exception ex) {
             javax.swing.JOptionPane.showMessageDialog(null, "Problema ao adicionar linha na Matriz Dinamica" + ex);
         }
@@ -25,7 +25,7 @@ public class MatrizDinamica2<T> {
     public void removeLinha(int linha) {
         try {
             matriz.remove(linha);
-            length = matriz.size();
+            tamanho = matriz.size();
         } catch (Exception ex) {
             javax.swing.JOptionPane.showMessageDialog(null, "Problema ao remover linha na Matriz Dinamica" + ex);
         }
