@@ -54,7 +54,6 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
     private File workspace;
     private static final String pathWorkspace = System.getProperty("user.home")
             + File.separator + "RepositorioDeFicheiros";
-    private boolean abortado = true;
     private ArrayList<String> linhaTabelaFicheiro;
     private ArrayList<String> cabecalhoTabelaFicheiro;
     private ArrayList<String> linhaTabelaDocumento;
@@ -80,11 +79,12 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
     // variaveis de teste de desempanho
     long timeInicio;
     long timeFim;
-    // variaveis que vao ficar
+    // variaveis que vao ficar  //////////////////////////////////////////////
     private MatrizDinamica2<String> cashArquivos;
     private MatrizDinamica2<String> cashFicheiros;
-    MatrizDinamica2<String> ficheirosSelecionados;
-    MatrizDinamica2<String> arquivosFicheirosSeleciodados;
+    private MatrizDinamica2<String> ficheirosSelecionados;
+    private MatrizDinamica2<String> arquivosFicheirosSeleciodados;
+    private MatrizDinamica2<String> arquivosSelecionados;
 
     public CTViewPrincipal() {
         viewPrincipal = new ViewPrincipal(modelTabFicheiro(), modelTabDocumento());    // Monta a Gui Inteira
@@ -195,11 +195,10 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
             //getDocumentosFicheiro("ficheiro2");
             clicouNaLinhaDaTabelaFicheiro();
         } else if (me.getSource() == viewPrincipal.getTabelaDocumentos() && me.getClickCount() == 2) {
-            for (int i = 0; i < pathsSelecionadosTabDocumentos.size(); i++) {
-                abrirDocumentoOuDiretorio(i);
-            }
+            editarDocumento();
         } else if (me.getSource() == viewPrincipal.getTabelaDocumentos()) {         // 1 clicke na tabela Documento
-            obterLinhaSelecionadaTabelaDocumento();
+            //obterLinhaSelecionadaTabelaDocumento();
+            clicouNaLinhaTabelaDocumento();
         } else if (me.getSource() == viewPrincipal.getRootPane()) {
             viewPrincipal.getTabelaDocumentos().getSelectionModel().clearSelection();
             viewPrincipal.getTabelaFicheiros().getSelectionModel().clearSelection();
@@ -421,11 +420,17 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
         return i;
     }
 
-    // Para propositos de testes
+    /**
+     * Esse método preenche os arquivo de informações com as informações dos
+     * ficheiros/arquivos adicionados manualmente no diretório de trabalho. Foi
+     * como uma rotina para agilisar os testes de desempenho.
+     *
+     * @return void
+     */
     private void carregaArquivosDeInformacao() {
         String[] subdiretorios = workspace.list();
         DAOInfoArquivosTabela dao = new DAOInfoArquivosTabela(pathWorkspace);
-        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss, dd/MM/yyyy");
+        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss | dd/MM/yyyy");
         for (int i = 0; i < subdiretorios.length; i++) {
             File sub = new File(pathWorkspace + File.separator + subdiretorios[i]);
             if (sub.isDirectory()) {
@@ -447,7 +452,7 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
     }
 
     private void abrirDocumentoOuDiretorio(int indice) {
-        arquivoSelecionado = pathsSelecionadosTabDocumentos.get(indice);
+        arquivoSelecionado = new File(arquivosSelecionados.obtemElementoLinha(indice, 6).replace(";", "").trim());
         new Thread() {
             @Override
             public void run() {
@@ -545,6 +550,42 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
             }
         }
         setaArquivosDoFicheiroNaTabelaDeFicheiro();
+        setaInformacaoPainelFicheiros(ficheirosSelecionados.obtemElementoLinha(ficheirosSelecionados.tamanho - 1, 0).split("-")[1],
+                ficheirosSelecionados.obtemElementoLinha(ficheirosSelecionados.tamanho - 1, 1).replace(" ", "").replace("|", ", "),
+                ficheirosSelecionados.obtemElementoLinha(ficheirosSelecionados.tamanho - 1, 2).replace(" ", "").replace("|", ", "),
+                ficheirosSelecionados.obtemElementoLinha(ficheirosSelecionados.tamanho - 1, 3),
+                ficheirosSelecionados.obtemElementoLinha(ficheirosSelecionados.tamanho - 1, 4));
+    }
+
+    private void clicouNaLinhaTabelaDocumento() {
+        arquivosSelecionados = new MatrizDinamica2<String>();
+        int[] selectedLines = viewPrincipal.getTabelaDocumentos().getSelectedRows();
+        if (selectedLines.length > 0) {
+            for (int j = 0; j < selectedLines.length; j++) {
+                String nome = (String) modeloTabelaDocumento.getValueAt(selectedLines[j], 0);
+                for (int i = 0; i < cashArquivos.tamanho; i++) {
+                    String[] pedacos = cashArquivos.obtemElementoLinha(i, 6).replace("\\", "/").split("/");
+                    if (pedacos[5].replace(";", "").equals(nome)) {
+                        ArrayList<String> linha = new ArrayList<String>();
+                        linha.add(cashArquivos.obtemElementoLinha(i, 0));
+                        linha.add(cashArquivos.obtemElementoLinha(i, 1));
+                        linha.add(cashArquivos.obtemElementoLinha(i, 2));
+                        linha.add(cashArquivos.obtemElementoLinha(i, 3));
+                        linha.add(cashArquivos.obtemElementoLinha(i, 4));
+                        linha.add(cashArquivos.obtemElementoLinha(i, 5));
+                        linha.add(cashArquivos.obtemElementoLinha(i, 6));
+                        arquivosSelecionados.adicionaLinha(linha);
+                        break;
+                    }
+                }
+            }
+            setaInformacaoPainelDocumentos(arquivosSelecionados.obtemElementoLinha(arquivosSelecionados.tamanho - 1, 0).split("-")[1],
+                    arquivosSelecionados.obtemElementoLinha(arquivosSelecionados.tamanho - 1, 1).replace(" ", "").replace("|", ", "),
+                    arquivosSelecionados.obtemElementoLinha(arquivosSelecionados.tamanho - 1, 2).replace(" ", "").replace("|", ", "),
+                    arquivosSelecionados.obtemElementoLinha(arquivosSelecionados.tamanho - 1, 3),
+                    arquivosSelecionados.obtemElementoLinha(arquivosSelecionados.tamanho - 1, 4),
+                    arquivosSelecionados.obtemElementoLinha(arquivosSelecionados.tamanho - 1, 5));
+        }
     }
 
     /**
@@ -557,13 +598,13 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
      */
     private MatrizDinamica2<String> getLinhasSelecionadasTabFicheiro() {
         MatrizDinamica2<String> conteudoLinhasSelecionadas = new MatrizDinamica2<String>();
-        ArrayList<String> linha = new ArrayList<String>();
         int[] selectedLines = viewPrincipal.getTabelaFicheiros().getSelectedRows();
         if (selectedLines.length > 0) {
             for (int j = 0; j < selectedLines.length; j++) {
                 String nome = (String) modeloTabelaFicheiro.getValueAt(selectedLines[j], 0);
                 for (int i = 0; i < cashFicheiros.tamanho; i++) {
                     if (cashFicheiros.obtemElementoLinha(i, 0).contains(nome)) {
+                        ArrayList<String> linha = new ArrayList<String>();
                         linha.add(cashFicheiros.obtemElementoLinha(i, 0));
                         linha.add(cashFicheiros.obtemElementoLinha(i, 1));
                         linha.add(cashFicheiros.obtemElementoLinha(i, 2));
@@ -585,12 +626,12 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
     private void setaArquivosDoFicheiroNaTabelaDeFicheiro() {
         if (modeloTabelaDocumento.limparTabela()) {
             for (int i = 0; i < arquivosFicheirosSeleciodados.tamanho; i++) {
-                addLinhaTabelaDocumento(arquivosFicheirosSeleciodados.obtemElementoLinha(i, 0),
+                addLinhaTabelaDocumento(arquivosFicheirosSeleciodados.obtemElementoLinha(i, 0).split("-")[1],
                         arquivosFicheirosSeleciodados.obtemElementoLinha(i, 1),
                         arquivosFicheirosSeleciodados.obtemElementoLinha(i, 2),
                         arquivosFicheirosSeleciodados.obtemElementoLinha(i, 3),
                         arquivosFicheirosSeleciodados.obtemElementoLinha(i, 4),
-                        arquivosFicheirosSeleciodados.obtemElementoLinha(i, 5));
+                        arquivosFicheirosSeleciodados.obtemElementoLinha(i, 5).replace(";", ""));
             }
         }
         modeloTabelaDocumento.fireTableDataChanged();
@@ -605,9 +646,10 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
      */
     private MatrizDinamica2<String> getDocumentosFicheiro(String nomeFicheiro) {
         MatrizDinamica2<String> arquivosFicheiro = new MatrizDinamica2<String>();
-        ArrayList<String> linha = new ArrayList<String>();
         for (int i = 0; i < cashArquivos.tamanho; i++) {
-            if (cashArquivos.obtemElementoLinha(i, 6).contains(nomeFicheiro)) {
+            String[] pedacos = cashArquivos.obtemElementoLinha(i, 6).replace("\\", "/").split("/");
+            if (pedacos[4].contains(nomeFicheiro)) {
+                ArrayList<String> linha = new ArrayList<String>();
                 linha.add(cashArquivos.obtemElementoLinha(i, 0));
                 linha.add(cashArquivos.obtemElementoLinha(i, 1));
                 linha.add(cashArquivos.obtemElementoLinha(i, 2));
@@ -707,8 +749,8 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
 
     private void editarDocumento() {
         // Se existe somente uma linha slecionada
-        if (pathsSelecionadosTabDocumentos != null) {
-            for (int i = 0; i < pathsSelecionadosTabDocumentos.size(); i++) {
+        if (arquivosSelecionados != null) {
+            for (int i = 0; i < arquivosSelecionados.tamanho; i++) {
                 abrirDocumentoOuDiretorio(i);
             }
         } else {
@@ -1304,7 +1346,6 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
         linha.add("Dr. Fulano");
         linha.add(pastaUsuario.getPath());
         cashFicheiros.adicionaLinha(linha);
-        abortado = true;    // Retorno status abortado
     }
 
     private ArrayList<String> getCabecalhoTabelaFicheiro() {
