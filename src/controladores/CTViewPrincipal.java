@@ -81,8 +81,10 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
     long timeInicio;
     long timeFim;
     // variaveis que vao ficar
-    private MatrizDinamica2<String> arquivos;
-    private MatrizDinamica2<String> ficheiros;
+    private MatrizDinamica2<String> cashArquivos;
+    private MatrizDinamica2<String> cashFicheiros;
+    MatrizDinamica2<String> ficheirosSelecionados;
+    MatrizDinamica2<String> arquivosFicheirosSeleciodados;
 
     public CTViewPrincipal() {
         viewPrincipal = new ViewPrincipal(modelTabFicheiro(), modelTabDocumento());    // Monta a Gui Inteira
@@ -313,11 +315,11 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
     }
 
     private void carregaInformacoes() {
-        arquivos = new MatrizDinamica2<String>();
-        ficheiros = new MatrizDinamica2<String>();
+        cashArquivos = new MatrizDinamica2<String>();
+        cashFicheiros = new MatrizDinamica2<String>();
         DAOInfoArquivosTabela dao = new DAOInfoArquivosTabela(pathWorkspace);
-        arquivos = dao.getDAOInfoDocs();
-        ficheiros = dao.getDAOInfoFicheiro();
+        cashArquivos = dao.getDAOInfoDocs();
+        cashFicheiros = dao.getDAOInfoFicheiro();
     }
 
     private void copiarDiretorio(String origem, String destino) {
@@ -526,8 +528,8 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
      * clica em uma ou mais linhas da tabela de ficheiros.
      */
     private void clicouNaLinhaDaTabelaFicheiro() {
-        MatrizDinamica2<String> ficheirosSelecionados = new MatrizDinamica2<String>();
-        MatrizDinamica2<String> arquivosFicheirosSeleciodados = new MatrizDinamica2<String>();
+        ficheirosSelecionados = new MatrizDinamica2<String>();
+        arquivosFicheirosSeleciodados = new MatrizDinamica2<String>();
         int[] selectedLines = viewPrincipal.getTabelaFicheiros().getSelectedRows();
         if (selectedLines.length > 0) {
             ficheirosSelecionados = getLinhasSelecionadasTabFicheiro();
@@ -542,6 +544,7 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
                 }
             }
         }
+        setaArquivosDoFicheiroNaTabelaDeFicheiro();
     }
 
     /**
@@ -559,14 +562,14 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
         if (selectedLines.length > 0) {
             for (int j = 0; j < selectedLines.length; j++) {
                 String nome = (String) modeloTabelaFicheiro.getValueAt(selectedLines[j], 0);
-                for (int i = 0; i < ficheiros.tamanho; i++) {
-                    if (ficheiros.obtemElementoLinha(i, 0).contains(nome)) {
-                        linha.add(ficheiros.obtemElementoLinha(i, 0));
-                        linha.add(ficheiros.obtemElementoLinha(i, 1));
-                        linha.add(ficheiros.obtemElementoLinha(i, 2));
-                        linha.add(ficheiros.obtemElementoLinha(i, 3));
-                        linha.add(ficheiros.obtemElementoLinha(i, 4));
-                        linha.add(ficheiros.obtemElementoLinha(i, 5));
+                for (int i = 0; i < cashFicheiros.tamanho; i++) {
+                    if (cashFicheiros.obtemElementoLinha(i, 0).contains(nome)) {
+                        linha.add(cashFicheiros.obtemElementoLinha(i, 0));
+                        linha.add(cashFicheiros.obtemElementoLinha(i, 1));
+                        linha.add(cashFicheiros.obtemElementoLinha(i, 2));
+                        linha.add(cashFicheiros.obtemElementoLinha(i, 3));
+                        linha.add(cashFicheiros.obtemElementoLinha(i, 4));
+                        linha.add(cashFicheiros.obtemElementoLinha(i, 5));
                         conteudoLinhasSelecionadas.adicionaLinha(linha);
                         break;
                     }
@@ -574,6 +577,23 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
             }
         }
         return conteudoLinhasSelecionadas;
+    }
+
+    /**
+     * o nome diz tudo ! xD
+     */
+    private void setaArquivosDoFicheiroNaTabelaDeFicheiro() {
+        if (modeloTabelaDocumento.limparTabela()) {
+            for (int i = 0; i < arquivosFicheirosSeleciodados.tamanho; i++) {
+                addLinhaTabelaDocumento(arquivosFicheirosSeleciodados.obtemElementoLinha(i, 0),
+                        arquivosFicheirosSeleciodados.obtemElementoLinha(i, 1),
+                        arquivosFicheirosSeleciodados.obtemElementoLinha(i, 2),
+                        arquivosFicheirosSeleciodados.obtemElementoLinha(i, 3),
+                        arquivosFicheirosSeleciodados.obtemElementoLinha(i, 4),
+                        arquivosFicheirosSeleciodados.obtemElementoLinha(i, 5));
+            }
+        }
+        modeloTabelaDocumento.fireTableDataChanged();
     }
 
     /**
@@ -586,15 +606,15 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
     private MatrizDinamica2<String> getDocumentosFicheiro(String nomeFicheiro) {
         MatrizDinamica2<String> arquivosFicheiro = new MatrizDinamica2<String>();
         ArrayList<String> linha = new ArrayList<String>();
-        for (int i = 0; i < arquivos.tamanho; i++) {
-            if (arquivos.obtemElementoLinha(i, 6).contains(nomeFicheiro)) {
-                linha.add(arquivos.obtemElementoLinha(i, 0));
-                linha.add(arquivos.obtemElementoLinha(i, 1));
-                linha.add(arquivos.obtemElementoLinha(i, 2));
-                linha.add(arquivos.obtemElementoLinha(i, 3));
-                linha.add(arquivos.obtemElementoLinha(i, 4));
-                linha.add(arquivos.obtemElementoLinha(i, 5));
-                linha.add(arquivos.obtemElementoLinha(i, 6));
+        for (int i = 0; i < cashArquivos.tamanho; i++) {
+            if (cashArquivos.obtemElementoLinha(i, 6).contains(nomeFicheiro)) {
+                linha.add(cashArquivos.obtemElementoLinha(i, 0));
+                linha.add(cashArquivos.obtemElementoLinha(i, 1));
+                linha.add(cashArquivos.obtemElementoLinha(i, 2));
+                linha.add(cashArquivos.obtemElementoLinha(i, 3));
+                linha.add(cashArquivos.obtemElementoLinha(i, 4));
+                linha.add(cashArquivos.obtemElementoLinha(i, 5));
+                linha.add(cashArquivos.obtemElementoLinha(i, 6));
                 arquivosFicheiro.adicionaLinha(linha);
             }
         }
@@ -1048,12 +1068,13 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
     }
 
     private void adicionarDocumento() {
-        if (linhasSelecionadas != null && linhasSelecionadas.length == 1) {
+        if (ficheirosSelecionados != null && ficheirosSelecionados.tamanho == 1) {  // se houver exatamente 1 ficheiro selecionado
             String idArquivo = javax.swing.JOptionPane.showInputDialog(viewPrincipal,
                     "Digite o nome: ", "Questão", JOptionPane.INFORMATION_MESSAGE);
             // verifica se ja ha um arquivo com o mesmo nome e da mesma extensao
-            String[] conteudo = pastaSelecionada.list();
-            if (conteudo.length > 0) {  // se a pasta nao esta vazia, pode haver arquivos iguais
+            File ficheiroSelecionado = new File(ficheirosSelecionados.obtemElementoLinha(0, 5));
+            String[] conteudo = ficheiroSelecionado.list();
+            if (conteudo != null && conteudo.length > 0) {  // se a pasta nao esta vazia, pode haver arquivos iguais
                 for (int i = 0; i < conteudo.length; i++) {
                     if (conteudo[i].equals(idArquivo)) {
                         javax.swing.JOptionPane.showMessageDialog(viewPrincipal,
@@ -1160,9 +1181,8 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
     }
 
     private void criarDocumento(String idArquivo) {
-        File arquivo = new File(pathWorkspace + File.separator
-                + conteudoLinhaSelecionadaTabelaFicheiro.obtemElementoLinha(0, 0)
-                + File.separator + idArquivo);
+        File arquivo = new File(ficheirosSelecionados.obtemElementoLinha(0, 5).replace(";", "").trim() + File.separator + idArquivo);
+        //File arquivo = new File("C:\\Users\\Desenv_03\\RepositorioDeFicheiros\\ficheiro1\\arquivo0ficheiro1.txt");
         try {
             arquivo.createNewFile();
             Date dataCriacao = new Date(arquivo.lastModified());
@@ -1188,7 +1208,7 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
             linha.add("Dr. Fulano");
             linha.add("arquivo de texto");
             linha.add(arquivo.getPath());
-            arquivos.adicionaLinha(linha);
+            cashArquivos.adicionaLinha(linha);
             modeloTabelaDocumento.fireTableDataChanged();
             javax.swing.JOptionPane.showMessageDialog(viewPrincipal,
                     "Documento criado com sucesso.");
@@ -1283,7 +1303,7 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
         linha.add(String.valueOf(pastaUsuario.length() / 1024) + " KB");
         linha.add("Dr. Fulano");
         linha.add(pastaUsuario.getPath());
-        ficheiros.adicionaLinha(linha);
+        cashFicheiros.adicionaLinha(linha);
         abortado = true;    // Retorno status abortado
     }
 
