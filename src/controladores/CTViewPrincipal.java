@@ -193,19 +193,22 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
             //obterLinhasSelecionadasTabelaFicheiro();
             //getLinhasSelecionadasTabFicheiro();
             //getDocumentosFicheiro("ficheiro2");
-            clicouNaLinhaDaTabelaFicheiro();
+            if (viewPrincipal.getTabelaFicheiros().getSelectedRows().length > 0) {
+                clicouNaLinhaDaTabelaFicheiro();
+            } else {
+                limparInformacoesInterface();
+            }
         } else if (me.getSource() == viewPrincipal.getTabelaDocumentos() && me.getClickCount() == 2) {
             editarDocumento();
         } else if (me.getSource() == viewPrincipal.getTabelaDocumentos()) {         // 1 clicke na tabela Documento
             //obterLinhaSelecionadaTabelaDocumento();
-            clicouNaLinhaTabelaDocumento();
+            if (viewPrincipal.getTabelaDocumentos().getSelectedRows().length > 0) {
+                clicouNaLinhaTabelaDocumento();
+            } else {
+                limparInformacoesInterface();
+            }
         } else if (me.getSource() == viewPrincipal.getRootPane()) {
-            viewPrincipal.getTabelaDocumentos().getSelectionModel().clearSelection();
-            viewPrincipal.getTabelaFicheiros().getSelectionModel().clearSelection();
-            setaInformacaoPainelDocumentos("", "", "", "", "", "");
-            setaInformacaoPainelFicheiros("", "", "", "", "");
-            modeloTabelaDocumento.limparTabela();
-            modeloTabelaDocumento.fireTableDataChanged();
+            limparInformacoesInterface();
         }
     }
 
@@ -228,6 +231,15 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
                 }
             }
         }
+    }
+
+    private void limparInformacoesInterface() {
+        viewPrincipal.getTabelaDocumentos().getSelectionModel().clearSelection();
+        viewPrincipal.getTabelaFicheiros().getSelectionModel().clearSelection();
+        setaInformacaoPainelDocumentos("", "", "", "", "", "");
+        setaInformacaoPainelFicheiros("", "", "", "", "");
+        modeloTabelaDocumento.limparTabela();
+        modeloTabelaDocumento.fireTableDataChanged();
     }
 
     /*private void addListenerComboBox() {
@@ -302,7 +314,7 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
             }
         }
         if (isFicheiro) {
-            cashFicheiros = cash ;
+            cashFicheiros = cash;
         } else {
             cashArquivos = cash;
         }
@@ -633,7 +645,6 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
                         linha.add(cashFicheiros.obtemElementoLinha(i, 4));
                         linha.add(cashFicheiros.obtemElementoLinha(i, 5));
                         conteudoLinhasSelecionadas.adicionaLinha(linha);
-                        break;
                     }
                 }
             }
@@ -1355,11 +1366,11 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
         String lastModifiedInterface = sdfInterface.format(dataCriacao);
         String lastModifiedInfo = sdfInfo.format(dataCriacao);
         addLinhaTabelaFicheiro(idFicheiro, lastModifiedInterface, lastModifiedInterface,
-                String.valueOf(pastaUsuario.length()) + " bytes", "Dr. Fulano");
+                String.valueOf(pastaUsuario.length()), "Dr. Fulano");
         // Grava informacoes no arquivo de texto
         DAOInfoArquivosTabela dao = new DAOInfoArquivosTabela(pathWorkspace);
         dao.gravaInfoFicheiro(idFicheiro, lastModifiedInfo, lastModifiedInfo,
-                String.valueOf(pastaUsuario.length()) + " bytes", "Dr. Fulano",
+                String.valueOf(pastaUsuario.length()), "Dr. Fulano",
                 pastaUsuario.getPath());
         // grava informacoes no arquivo de acesso rapido
         ArrayList<String> linha = new ArrayList<String>();

@@ -54,9 +54,9 @@ public class DAOInfoArquivosTabela {
         try {
             FileWriter fw = new FileWriter(infoFicheiro, true);
             BufferedWriter bw = new BufferedWriter(fw);
-            bw.write(String.valueOf(getNovaTag("infoFicheiro")) + "-" + nome + ", "
-                    + dtCriacao + ", " + dtModificacao + ", " + tamanho + "KB" + ", " + autor
-                    + ", " + path);
+            bw.write(String.valueOf(getNovaTag("infoFicheiro")) + "-" + nome + ","
+                    + dtCriacao + "," + dtModificacao + "," + tamanho + "KB" + "," + autor
+                    + "," + path);
             ArrayList<String> linha = new ArrayList<String>();
             linha.add(nome);
             linha.add(dtCriacao);
@@ -156,8 +156,9 @@ public class DAOInfoArquivosTabela {
         try {
             FileWriter fw = new FileWriter(infoArquivo, true);
             BufferedWriter bw = new BufferedWriter(fw);
-            bw.write(String.valueOf(getNovaTag("infoArquivo")) + "-" + nome + ", "
-                    + dtCriacao + " , " + dtModificacao + ", " + tamanho + "KB" + ", " + autor + ", " + tipo + ", " + path);
+            bw.write(String.valueOf(getNovaTag("infoArquivo")) + "-" + nome + ","
+                    + dtCriacao + "," + dtModificacao + "," + tamanho + "KB" + "," 
+                    + autor + "," + tipo + "," + path);
             ArrayList<String> linha = new ArrayList<String>();
             linha.add(nome);
             linha.add(dtCriacao);
