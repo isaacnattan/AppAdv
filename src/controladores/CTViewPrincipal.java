@@ -245,11 +245,13 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
      });
      }*/
     private void removerFicheiro() {
-        if (conteudoLinhaSelecionadaTabelaFicheiro != null) {
-            if (conteudoLinhaSelecionadaTabelaFicheiro.tamanho > 0) {
-                if (conteudoLinhaSelecionadaTabelaFicheiro.tamanho == 1) {
+        File ficheiro = null;
+        if (ficheirosSelecionados != null) {
+            if (ficheirosSelecionados.tamanho > 0) {
+                if (ficheirosSelecionados.tamanho == 1) {
                     if (mensagemDeConfirmacaoRemover(true) == JOptionPane.YES_OPTION) {
-                        deleteDir(pastaSelecionada);
+                        ficheiro = new File(ficheirosSelecionados.obtemElementoLinha(0, 5).replace(";", "").trim());
+                        deleteDir(ficheiro);
                         //Remover o conteudo das duas tabelas
                         modeloTabelaDocumento.limparTabela();   // Retira todos os registros da tabela de documentos
                         modeloTabelaFicheiro.removeLinha(viewPrincipal.getTabelaFicheiros().getSelectedRow());
@@ -259,14 +261,17 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
                         javax.swing.JOptionPane.showMessageDialog(painelProgress, "Ação cancelada pelo usuário.");
                     }
                     // Trata multiplas delecoes 
-                } else if (conteudoLinhaSelecionadaTabelaFicheiro.tamanho > 1) {
+                } else if (ficheirosSelecionados.tamanho > 1) {
                     javax.swing.JOptionPane.showMessageDialog(viewPrincipal, "Você está prestes a deletar mais de um ficheiro, "
                             + "isso pode envolver uma quantidade de documentos muito grande.");
                     if (mensagemDeConfirmacaoRemover(true) == JOptionPane.YES_OPTION) {
-                        for (int i = 0; i < pathsSelecionadosTabFicheiro.size(); i++) {
-                            deleteDir(pathsSelecionadosTabFicheiro.get(i));
+                        for (int i = 0; i < ficheirosSelecionados.tamanho; i++) {
+                            deleteDir(new File(ficheirosSelecionados.obtemElementoLinha(i, 5).replace(";", "").trim()));
                             //Remover o conteudo das duas tabelas
                             modeloTabelaFicheiro.removeLinha(linhasSelecionadas[i]);
+                            // remover o registro dos ficheiros
+                            removeInfoCash(ficheiro, true);
+                            // remover tambem do arquivo de informacao
                         }
                     }
                     modeloTabelaDocumento.limparTabela();   // Retira todos os registros da tabela de documentos
@@ -280,6 +285,26 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
         } else {
             javax.swing.JOptionPane.showMessageDialog(viewPrincipal,
                     "Selecione antes o ficheiro que deseja remover.");
+        }
+    }
+
+    private void removeInfoCash(File ficheiroArquivo, boolean isFicheiro) {
+        MatrizDinamica2<String> cash;
+        if (isFicheiro) {
+            cash = cashFicheiros;
+        } else {
+            cash = cashArquivos;
+        }
+        for (int j = 0; j < cash.tamanho; j++) {
+            if (ficheiroArquivo.getPath().equals(cash.obtemElementoLinha(j, 5).replace(";", "").trim())) {
+                // remover elemento da matriz dinamica
+                cash.removeLinha(j);
+            }
+        }
+        if (isFicheiro) {
+            cashFicheiros = cash ;
+        } else {
+            cashArquivos = cash;
         }
     }
 
@@ -374,20 +399,16 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
         new Thread() {
             @Override
             public void run() {
-                if (conteudoLinhaSelecionadaTabelaDocumento != null) {
-                    if (conteudoLinhaSelecionadaTabelaDocumento.tamanho == 2) {
-                        if (pathsSelecionadosTabDocumentos != null) {
-                            if (compararDocumentos(pathsSelecionadosTabDocumentos.get(0).getPath(),
-                                    pathsSelecionadosTabDocumentos.get(1).getPath())) {  // arquivo selecionado2
-                                javax.swing.JOptionPane.showMessageDialog(viewPrincipal,
-                                        "Os arquivos são iguais.");
-                            } else {
-                                javax.swing.JOptionPane.showMessageDialog(viewPrincipal,
-                                        "Os arquivos não são iguais.");
-                            }
+                if (arquivosSelecionados != null) {
+                    if (arquivosSelecionados.tamanho == 2) {
+                        if (compararDocumentos(arquivosSelecionados.obtemElementoLinha(0, 6)
+                                .replace(";", "").trim(), arquivosSelecionados.
+                                obtemElementoLinha(1, 6).replace(";", "").trim())) {  // arquivo selecionado2
+                            javax.swing.JOptionPane.showMessageDialog(viewPrincipal,
+                                    "Os arquivos são iguais.");
                         } else {
-                            javax.swing.JOptionPane.showMessageDialog(viewPrincipal, "Você deve selecionar 2 arquivos "
-                                    + "para realizar a comparação.");
+                            javax.swing.JOptionPane.showMessageDialog(viewPrincipal,
+                                    "Os arquivos não são iguais.");
                         }
                     } else {
                         javax.swing.JOptionPane.showMessageDialog(viewPrincipal, "Você deve selecionar 2 arquivos "
@@ -700,7 +721,7 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
     }
 
     private void renomearFicheiro() {
-        if (viewPrincipal.getTabelaFicheiros().getSelectedRow() >= 0) {
+        if (ficheirosSelecionados.tamanho >= 0) {
             String renomear = javax.swing.JOptionPane.showInputDialog(null,
                     "Entre com o novo nome do seu Ficheiro:",
                     "Questão", JOptionPane.PLAIN_MESSAGE);
@@ -718,7 +739,9 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
                     }
                     if (ok) {
                         try {
-                            pastaSelecionada.renameTo(new File(pathWorkspace + File.separator + renomear));
+                            new File(ficheirosSelecionados.obtemElementoLinha(
+                                    ficheirosSelecionados.tamanho - 1, 5)).
+                                    renameTo(new File(pathWorkspace + File.separator + renomear));
                         } catch (Exception ex) {
                             javax.swing.JOptionPane.showMessageDialog(viewPrincipal, ex);
                         }
@@ -841,10 +864,10 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
 
     private void abrirFicheiroWindows() {
         try {
-            Runtime.getRuntime().exec("explorer.exe " + "\"" + pathWorkspace
-                    + File.separator + modeloTabelaFicheiro.
-                    getLinhaTabela(viewPrincipal.getTabelaFicheiros().
-                    getSelectedRow()).get(0) + "\"");
+            Runtime.getRuntime().exec("explorer.exe " + "\""
+                    + ficheirosSelecionados.obtemElementoLinha(
+                    ficheirosSelecionados.tamanho - 1, 5).replace(";", "").trim()
+                    + "\"");
         } catch (IOException ex) {
             javax.swing.JOptionPane.showMessageDialog(viewPrincipal,
                     "Problemas ao abrir o ficheiro" + ex);
@@ -975,7 +998,8 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
                             javax.swing.JOptionPane.showMessageDialog(viewPrincipal, ex);
                         }
                         modeloTabelaDocumento.removeLinha(viewPrincipal.getTabelaDocumentos().getSelectedRow());
-                        obterLinhasSelecionadasTabelaFicheiro();
+                        //obterLinhasSelecionadasTabelaFicheiro();
+                        clicouNaLinhaDaTabelaFicheiro();
                         modeloTabelaDocumento.fireTableDataChanged();
                     } else {
                         javax.swing.JOptionPane.showMessageDialog(viewPrincipal,
