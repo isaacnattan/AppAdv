@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
@@ -94,6 +95,7 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
         addListeners();
         addAtalhos();
         //addListenerComboBox();
+        setSelectionMode();
         criaWorkspace();
         carregaInformacoes();
         carregaFicheiros();
@@ -582,7 +584,7 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
                 }
             }
         }
-        setaArquivosDoFicheiroNaTabelaDeFicheiro();
+        setaArquivosDoFicheiroNaTabelaDeArquivos();
         setaInformacaoPainelFicheiros(ficheirosSelecionados.obtemElementoLinha(ficheirosSelecionados.tamanho - 1, 0).split("-")[1],
                 ficheirosSelecionados.obtemElementoLinha(ficheirosSelecionados.tamanho - 1, 1).replace(" ", "").replace("|", ", "),
                 ficheirosSelecionados.obtemElementoLinha(ficheirosSelecionados.tamanho - 1, 2).replace(" ", "").replace("|", ", "),
@@ -655,12 +657,12 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
     /**
      * o nome diz tudo ! xD
      */
-    private void setaArquivosDoFicheiroNaTabelaDeFicheiro() {
+    private void setaArquivosDoFicheiroNaTabelaDeArquivos() {
         if (modeloTabelaDocumento.limparTabela()) {
             for (int i = 0; i < arquivosFicheirosSeleciodados.tamanho; i++) {
                 addLinhaTabelaDocumento(arquivosFicheirosSeleciodados.obtemElementoLinha(i, 0).split("-")[1],
-                        arquivosFicheirosSeleciodados.obtemElementoLinha(i, 1),
-                        arquivosFicheirosSeleciodados.obtemElementoLinha(i, 2),
+                        arquivosFicheirosSeleciodados.obtemElementoLinha(i, 1).replace("|", ", "),
+                        arquivosFicheirosSeleciodados.obtemElementoLinha(i, 2).replace("|", ", "),
                         arquivosFicheirosSeleciodados.obtemElementoLinha(i, 3),
                         arquivosFicheirosSeleciodados.obtemElementoLinha(i, 4),
                         arquivosFicheirosSeleciodados.obtemElementoLinha(i, 5).replace(";", ""));
@@ -693,6 +695,24 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
             }
         }
         return arquivosFicheiro;
+    }
+    
+    /**
+     * Resolve ação de: após pressionar enter, selecionar o proximo campo.
+     * @return void
+     */
+    private void setSelectionMode() {
+        // RESOLVER AÇÃO DE ENTER SELECIONANDO PRÓXIMO
+        Action doNothing = new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                //do nothing
+            }
+        };
+        viewPrincipal.getTabelaFicheiros().getInputMap().put(KeyStroke.getKeyStroke("ENTER"), "doNothing");
+        viewPrincipal.getTabelaFicheiros().getActionMap().put("doNothing", doNothing);
+        viewPrincipal.getTabelaFicheiros().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_TAB, 0), "none");
+        viewPrincipal.getTabelaFicheiros().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_TAB, InputEvent.SHIFT_DOWN_MASK), "none");
     }
 
     // complexidade linear
@@ -1258,13 +1278,14 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
     }
 
     private void criarDocumento(String idArquivo) {
-        File arquivo = new File(ficheirosSelecionados.obtemElementoLinha(0, 5).replace(";", "").trim() + File.separator + idArquivo);
+        File arquivo = new File(ficheirosSelecionados.obtemElementoLinha(0, 5).
+                replace(";", "").trim() + File.separator + idArquivo);
         //File arquivo = new File("C:\\Users\\Desenv_03\\RepositorioDeFicheiros\\ficheiro1\\arquivo0ficheiro1.txt");
         try {
             arquivo.createNewFile();
             Date dataCriacao = new Date(arquivo.lastModified());
             DateFormat sdfInterface = new SimpleDateFormat("HH:mm:ss, dd/MM/yyyy");
-            DateFormat sdfInfo = new SimpleDateFormat("HH:mm:ss| dd/MM/yyyy");
+            DateFormat sdfInfo = new SimpleDateFormat("HH:mm:ss | dd/MM/yyyy");
             String lastModifiedInterface = sdfInterface.format(dataCriacao);
             String lastModifiedInfo = sdfInfo.format(dataCriacao);
             addLinhaTabelaDocumento(idArquivo, lastModifiedInterface,
