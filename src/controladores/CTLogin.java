@@ -3,7 +3,7 @@ package controladores;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import javax.swing.JFrame;
-import views.Login;
+import views.ViewLogin;
 
 /**
  * @author Isaac Nattan
@@ -14,13 +14,13 @@ public class CTLogin extends CTPai {
 
     public final String passDefault = "mudar@123";
     public final String userDefault = "Admin";
-    private Login sessaoLogin;
+    private ViewLogin sessaoLogin;
     // informações interessantes
     public String pass = null;
     public String user = null;
 
     public CTLogin() {
-        sessaoLogin = new Login();
+        sessaoLogin = new ViewLogin();
         addListeners();
         sessaoLogin.setLocationRelativeTo(sessaoLogin);
         sessaoLogin.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

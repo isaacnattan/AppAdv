@@ -2,6 +2,7 @@ package controladores;
 
 import util.UVAlert;
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
@@ -38,6 +39,7 @@ import modelo.DAOInfoArquivosTabela;
 import util.MatrizDinamica2;
 import util.ModeloTabela;
 import util.TableSorter;
+import views.ViewCriaDoc;
 import views.ViewPrincipal;
 
 /**
@@ -86,9 +88,13 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
     private MatrizDinamica2<String> ficheirosSelecionados;
     private MatrizDinamica2<String> arquivosFicheirosSeleciodados;
     private MatrizDinamica2<String> arquivosSelecionados;
+    private ViewCriaDoc viewCriaDoc;
+    private String extensaoArquivoCriado;
+    private String nomeArquivoCriado;
 
     public CTViewPrincipal() {
         viewPrincipal = new ViewPrincipal(modelTabFicheiro(), modelTabDocumento());    // Monta a Gui Inteira
+        viewCriaDoc = new ViewCriaDoc();
         // Monta os cabecalhos das tabelas para a orenacao
         //montarComboBoxOrdenarPor();
         //montarComboBoxDocsOrdenarPor();
@@ -106,6 +112,10 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
         // Ordenacao clicando na coluna
         viewPrincipal.getTabelaDocumentos().setAutoCreateRowSorter(true);
         viewPrincipal.getTabelaFicheiros().setAutoCreateRowSorter(true);
+    }
+
+    public CTViewPrincipal(Component fuga) {
+        viewPrincipal = new ViewPrincipal(modelTabFicheiro(), modelTabDocumento());    // Monta a Gui Inteira
     }
 
     /**
@@ -158,6 +168,11 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
         viewPrincipal.getTabelaFicheiros().addKeyListener(this);
         // Deselecionar linhas das tabelas
         viewPrincipal.getRootPane().addMouseListener(this);
+        // tela de tipo de arquivo a ser criado
+        viewCriaDoc.getBtBlocoNotas().addMouseListener(this);
+        viewCriaDoc.getBtExcel().addMouseListener(this);
+        viewCriaDoc.getBtPowerPoint().addMouseListener(this);
+        viewCriaDoc.getBtword().addMouseListener(this);
     }
 
     @Override
@@ -176,7 +191,7 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
         } else if (me.getSource() == viewPrincipal.getBtCompararFicheiro()) {
             compararFicheiros();
         } else if (me.getSource() == viewPrincipal.getBtAdiocionarDocumentos()) {    // Docs
-            adicionarDocumento();
+            criarArquivo();
         } else if (me.getSource() == viewPrincipal.getBtRemoverDocumentos()) {
             removerDocumento();
         } else if (me.getSource() == viewPrincipal.getBtRenomearDocumentos()) {
@@ -211,6 +226,18 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
             }
         } else if (me.getSource() == viewPrincipal.getRootPane()) {
             limparInformacoesInterface();
+        } else if (me.getSource() == viewCriaDoc.getBtword()) {         // listeners tela criaDoc
+            viewCriaDoc.dispose();
+            criarDocumento(nomeArquivoCriado + ".docx");
+        } else if (me.getSource() == viewCriaDoc.getBtExcel()) {
+            viewCriaDoc.dispose();
+            criarDocumento(nomeArquivoCriado + ".xlsx");
+        } else if (me.getSource() == viewCriaDoc.getBtPowerPoint()) {
+            viewCriaDoc.dispose();
+            criarDocumento(nomeArquivoCriado + ".ppt");
+        } else if (me.getSource() == viewCriaDoc.getBtBlocoNotas()) {
+            viewCriaDoc.dispose();
+            criarDocumento(nomeArquivoCriado + ".txt");
         }
     }
 
@@ -469,16 +496,17 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
         for (int i = 0; i < subdiretorios.length; i++) {
             File sub = new File(pathWorkspace + File.separator + subdiretorios[i]);
             if (sub.isDirectory()) {
-                dao.gravaInfoFicheiro(subdiretorios[i], "",
+                dao.gravaInfoFicheiro(subdiretorios[i], sdf.format(new Date(sub.lastModified())),
                         sdf.format(new Date(sub.lastModified())),
-                        String.valueOf(sub.length() / 1024) + "KB", "dr. Fulano",
+                        String.valueOf(sub.length() / 1024), "dr. Fulano",
                         sub.getPath());
                 String[] subdir = sub.list();
                 for (int j = 0; j < subdir.length; j++) {
                     File s = new File(pathWorkspace + File.separator
                             + subdiretorios[i] + File.separator + subdir[j]);
-                    dao.gravaInfoArquivo(subdir[j], "", sdf.format(new Date(s.lastModified())),
-                            String.valueOf(s.length() / 1024) + "KB", "Dr. Fulano",
+                    dao.gravaInfoArquivo(subdir[j], sdf.format(new Date(s.lastModified())),
+                            sdf.format(new Date(s.lastModified())),
+                            String.valueOf(s.length() / 1024), "Dr. Fulano",
                             "Arquivo pdf", s.getPath());
                 }
                 progressBar(subdiretorios.length, i);
@@ -575,8 +603,7 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
             ficheirosSelecionados = getLinhasSelecionadasTabFicheiro();
             for (int i = 0; i < ficheirosSelecionados.tamanho; i++) {
                 MatrizDinamica2<String> matrizTemporaria = getDocumentosFicheiro(
-                        ficheirosSelecionados.obtemElementoLinha(i, 0).replace(
-                        ficheirosSelecionados.obtemElementoLinha(i, 0).substring(0, 2), ""));
+                        ficheirosSelecionados.obtemElementoLinha(i, 0).split("-")[1]);
                 ArrayList<String> arrayTemp = new ArrayList<String>();
                 for (int k = 0; k < matrizTemporaria.tamanho; k++) {
                     arrayTemp = matrizTemporaria.obtemLinha(k);
@@ -638,7 +665,9 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
             for (int j = 0; j < selectedLines.length; j++) {
                 String nome = (String) modeloTabelaFicheiro.getValueAt(selectedLines[j], 0);
                 for (int i = 0; i < cashFicheiros.tamanho; i++) {
-                    if (cashFicheiros.obtemElementoLinha(i, 0).contains(nome)) {
+                    String[] pedacos = cashFicheiros.obtemElementoLinha(i, 5).
+                            replace("\\", "/").replace(";", "").split("/");
+                    if (pedacos[4].equals(nome)) {
                         ArrayList<String> linha = new ArrayList<String>();
                         linha.add(cashFicheiros.obtemElementoLinha(i, 0));
                         linha.add(cashFicheiros.obtemElementoLinha(i, 1));
@@ -696,9 +725,10 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
         }
         return arquivosFicheiro;
     }
-    
+
     /**
      * Resolve ação de: após pressionar enter, selecionar o proximo campo.
+     *
      * @return void
      */
     private void setSelectionMode() {
@@ -1164,56 +1194,47 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
         }
     }
 
-    private void adicionarDocumento() {
+    private void criarArquivo() {
+        nomeArquivoCriado = getNomeDocumento();
+        if (nomeArquivoCriado != null) {
+            viewCriaDoc.getVisible();
+        }
+    }
+
+    private String getNomeDocumento() {
         if (ficheirosSelecionados != null && ficheirosSelecionados.tamanho == 1) {  // se houver exatamente 1 ficheiro selecionado
             String idArquivo = javax.swing.JOptionPane.showInputDialog(viewPrincipal,
                     "Digite o nome: ", "Questão", JOptionPane.INFORMATION_MESSAGE);
-            // verifica se ja ha um arquivo com o mesmo nome e da mesma extensao
-            File ficheiroSelecionado = new File(ficheirosSelecionados.obtemElementoLinha(0, 5));
-            String[] conteudo = ficheiroSelecionado.list();
-            if (conteudo != null && conteudo.length > 0) {  // se a pasta nao esta vazia, pode haver arquivos iguais
-                for (int i = 0; i < conteudo.length; i++) {
-                    if (conteudo[i].equals(idArquivo)) {
-                        javax.swing.JOptionPane.showMessageDialog(viewPrincipal,
-                                "Já existe um documento com esse identificador, por favor escolha outro.");
-                        adicionarDocumento();
-                    } else {
-                        if (i == (conteudo.length - 1)) {
-                            if (idArquivo != null && !idArquivo.equals("")) {
-                                if (idArquivo.equalsIgnoreCase("")) {
-                                    javax.swing.JOptionPane.showMessageDialog(viewPrincipal,
-                                            "Por favor insira um identificador válido.");
-                                    adicionarDocumento();
-                                } else {
-                                    criarDocumento(idArquivo);
-                                    javax.swing.JOptionPane.showMessageDialog(viewPrincipal, "Documento criado com sucesso!");
-                                }
-                            } else {
-                                javax.swing.JOptionPane.showMessageDialog(viewPrincipal,
-                                        "Ação cancelada pelo usuário.");
-                            }
-                        }
-                    }
-                }
-            } else {    // pasta vazia, nao tem como ter arquivo iguais
-                if (idArquivo != null && !idArquivo.equals("")) {
-                    if (idArquivo.equalsIgnoreCase("")) {
-                        javax.swing.JOptionPane.showMessageDialog(viewPrincipal,
-                                "Por favor insira um identificador válido.");
-
-                        adicionarDocumento();
-                    } else {
-                        criarDocumento(idArquivo);
-                    }
-                } else {
+            // verifica se ja ha um arquivo com o mesmo nome
+            for (int i = 0; i < arquivosFicheirosSeleciodados.tamanho; i++) {
+                String idArquivoCash = arquivosFicheirosSeleciodados.obtemElementoLinha(i, 0).
+                        split("-")[1];
+                idArquivoCash = idArquivoCash.replace(".", "/").split("/")[0];
+                if (idArquivo.equals(idArquivoCash)) {
                     javax.swing.JOptionPane.showMessageDialog(viewPrincipal,
-                            "Ação cancelada pelo usuário.");
+                            "Já existe um arquivo com esse nome.\nPor favor escolha outro.");
+                    getNomeDocumento();
                 }
             }
+            if (idArquivo != null && !idArquivo.equals("")) {
+                if (idArquivo.equalsIgnoreCase("")) {
+                    javax.swing.JOptionPane.showMessageDialog(viewPrincipal,
+                            "Por favor insira um identificador válido.");
+
+                    getNomeDocumento();
+                } else {
+                    return idArquivo;
+                }
+            } else {
+                javax.swing.JOptionPane.showMessageDialog(viewPrincipal,
+                        "Ação cancelada pelo usuário.");
+            }
+            //}
         } else {
             javax.swing.JOptionPane.showMessageDialog(viewPrincipal,
                     "Selecione antes o ficheiro o qual deseja adicionar documentos.");
         }
+        return null;
     }
 
     private void setaInformacaoPainelFicheiros(String nome, String dtCriacao,
@@ -1291,15 +1312,10 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
             addLinhaTabelaDocumento(idArquivo, lastModifiedInterface,
                     lastModifiedInterface, String.valueOf(arquivo.length()),
                     "Dr. Fulano", "arquivo de texto");
-            // Adiciona informacao no DAO
             DAOInfoArquivosTabela dao = new DAOInfoArquivosTabela(pathWorkspace);
-            dao.gravaInfoArquivo(idArquivo, lastModifiedInfo, lastModifiedInfo,
-                    String.valueOf(arquivo.length() / 1024), "Dr. Fulano",
-                    "arquivo de texto", arquivo.getPath());
             // Adiciona informacao ao arquivo de acesso rapido
-            // grava informacoes no arquivo de aceesso rapido
             ArrayList<String> linha = new ArrayList<String>();
-            linha.add(idArquivo);
+            linha.add(dao.getNovaTag("infoDocumento") + "-" + idArquivo);
             linha.add(lastModifiedInfo);
             linha.add(lastModifiedInfo);
             linha.add(String.valueOf(arquivo.length() / 1024) + " KB");
@@ -1307,6 +1323,10 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
             linha.add("arquivo de texto");
             linha.add(arquivo.getPath());
             cashArquivos.adicionaLinha(linha);
+            // Adiciona informacao no DAO
+            dao.gravaInfoArquivo(idArquivo, lastModifiedInfo, lastModifiedInfo,
+                    String.valueOf(arquivo.length() / 1024), "Dr. Fulano",
+                    "arquivo de texto", arquivo.getPath());
             modeloTabelaDocumento.fireTableDataChanged();
             javax.swing.JOptionPane.showMessageDialog(viewPrincipal,
                     "Documento criado com sucesso.");
@@ -1438,7 +1458,7 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
             File arquivoTemp = new File(pathWorkspace + File.separator + ficheirosWorkspace[i]);
             DateFormat sdf = new SimpleDateFormat("HH:mm:ss, dd/MM/yyyy");
             if (!ficheirosWorkspace[i].contains(".")) {
-                addLinhaTabelaFicheiro(arquivoTemp.getName(), "",
+                addLinhaTabelaFicheiro(arquivoTemp.getName(), cashFicheiros.obtemElementoLinha(i, 1).replace(" | ", ", "),
                         sdf.format(new Date(arquivoTemp.lastModified())),
                         String.valueOf(arquivoTemp.length() / 1024) + " KB", "Dr. Fulano");
             }
@@ -1557,7 +1577,7 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
         viewPrincipal.getRootPane().getActionMap().put("ctrlAltA", new AbstractAction("ctrlAltA") {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                adicionarDocumento();
+                criarArquivo();
             }
         });
         //Ctrl+Alt+D para deletar um documento
@@ -1613,10 +1633,10 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
         // para classificar documentos
     }
 
-    public static void main(String[] args) {
+    /*public static void main(String[] args) {
         CTViewPrincipal ctvp = new CTViewPrincipal();
         ctvp.carregaArquivosDeInformacao();
-    }
+    }*/
 }
 
 /*          Observações importantes 
@@ -1637,15 +1657,6 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
  * dois paths diferentes e válidos, tratar isso !
  * 
  * - Abrir dois arquivos ao mesmo tempo não ta funcionando muito bem, ainda; [urgente]
- */
-
-/*
- * tem que mudar a lógica do programa. Toda vez que o cara clica em uma linha
- * da tabela de ficheiros, executa um algoritmo que carrega todas as linhas que foram
- * selecionadas SEMPRE que isso acontece. Isso tem uma complexidade muito ruim.
- * Uma alternativa eh, deixar a demora somente para quando iniciar o programa, em outras
- * palavras, quando o programa inicia deve recorrer para os arquivos de informações
- * e carregar uma MatrizDinamica2 com todos os arquivos e outra com todos os ficheiro e
- * ordená-los para aplicar
  * 
+ * - Carregar lastModifeid Sempre que possível;
  */

@@ -11,14 +11,14 @@ import javax.swing.JFrame;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import util.AutenticacaoHardware;
-import views.Login;
+import views.ViewLogin;
 
 /**
  * @author Isaac Nattan
  */
 public class Main extends CTPai {
 
-    private static Login sessaoLogin;
+    private static ViewLogin sessaoLogin;
     public static final String passDefault = "mudar@123";
     public static final String userDefault = "Admin";
     private static String user;
@@ -42,17 +42,17 @@ public class Main extends CTPai {
             javax.swing.JOptionPane.showMessageDialog(null, ex);
         }
         AutenticacaoHardware hw = new AutenticacaoHardware();
-        if (hw.autenticacao()) {
+        //if (hw.autenticacao()) {
             Main main = new Main();
-            sessaoLogin = new Login();
+            sessaoLogin = new ViewLogin();
             main.addListeners();
             main.addFocusListener();
             sessaoLogin.setLocationRelativeTo(sessaoLogin);
             sessaoLogin.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             sessaoLogin.setVisible(true);
-        } else {
-            javax.swing.JOptionPane.showMessageDialog(sessaoLogin, "");
-        }
+        //} else {
+            //javax.swing.JOptionPane.showMessageDialog(sessaoLogin, "");
+        //}
     }
 
     private void validaUser() {

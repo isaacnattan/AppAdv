@@ -1,5 +1,6 @@
 package util;
 
+import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
@@ -8,6 +9,10 @@ import java.awt.Image;
 import java.awt.RenderingHints;
 import java.awt.geom.AffineTransform;
 import javax.swing.ImageIcon;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.SpringLayout;
+import javax.swing.WindowConstants;
 
 public class BackgroundButton extends javax.swing.JButton {
     //Carrega a sua imagem  
@@ -37,5 +42,24 @@ public class BackgroundButton extends javax.swing.JButton {
         int x = (size.width - textWidth) / 2;
         int y = (size.height - textHeight) / 2 + fm.getAscent();
         g.drawString(texto, x, y);
+    }
+    
+    public static void main(String [] args){
+        BackgroundButton bkb = new BackgroundButton("src/images/docx.png");
+        JPanel painelBtn = new JPanel(new BorderLayout());
+        painelBtn.add(bkb, BorderLayout.CENTER);
+        SpringLayout layout = new SpringLayout();
+        JFrame tela = new JFrame();
+        tela.setLayout(layout);
+        tela.add(painelBtn);
+        layout.putConstraint(SpringLayout.WEST, bkb,
+                15, SpringLayout.WEST, tela);
+        layout.putConstraint(SpringLayout.NORTH, bkb,
+                20, SpringLayout.NORTH, tela);
+        tela.setLocationRelativeTo(tela);
+        tela.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+        tela.setSize(400, 300);
+        tela.setResizable(false);
+        tela.setVisible(true);
     }
 }

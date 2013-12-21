@@ -9,9 +9,9 @@ import javax.swing.JTextField;
  * @version 1.0
  * @since 12/12/13
  */
-public class Login extends javax.swing.JFrame {
+public class ViewLogin extends javax.swing.JFrame {
     
-    public Login() {
+    public ViewLogin() {
         initComponents();
     }
 

@@ -187,7 +187,7 @@ public class DAOInfoArquivosTabela {
         return arquivo;
     }
 
-    private int getNovaTag(String arquivo) {
+    public int getNovaTag(String arquivo) {
         int indice;
         int limite;
         int i = 0;
