@@ -19,9 +19,11 @@ public class DAOInfoArquivosTabela {
 
     private File infoFicheiro;
     private File infoArquivo;
-    private String pathWorkspace;// Agilizar consultas
+    private File temp;
+    private String pathWorkspace;                       // Agilizar consultas
     private MatrizDinamica2<String> DAOInfoFicheiro;
     private MatrizDinamica2<String> DAOInfoDocs;
+    private boolean isTemp = false;
 
     public DAOInfoArquivosTabela(String pathWorkspace) {
         infoFicheiro = new File(pathWorkspace + File.separator + "infoTabFicheiro.txt");
@@ -42,7 +44,7 @@ public class DAOInfoArquivosTabela {
                 //Para Ocultar, colocar somente leitura, e colocar como arquivo de sistema:
                 //Runtime.getRuntime().exec("cmd /c attrib +h +s +r " + infoArquivo);
             } catch (IOException ex) {
-                UVAlert.alertError("Problemas na criação do arquivo de informações." + ex);
+                UVAlert.alertError("Problemas na criação do arquivo de informacaes." + ex);
             }
         }
         DAOInfoDocs = getAllRegs("infoDocs");
@@ -52,11 +54,22 @@ public class DAOInfoArquivosTabela {
     public void gravaInfoFicheiro(String nome, String dtCriacao, String dtModificacao,
             String tamanho, String autor, String path) {
         try {
-            FileWriter fw = new FileWriter(infoFicheiro, true);
+            FileWriter fw;
+            if (!isTemp) {
+                fw = new FileWriter(infoFicheiro, true);
+            } else {
+                fw = new FileWriter(temp, true);
+            }
             BufferedWriter bw = new BufferedWriter(fw);
-            bw.write(String.valueOf(getNovaTag("infoFicheiro")) + "-" + nome + ","
-                    + dtCriacao + "," + dtModificacao + "," + tamanho + "KB" + "," + autor
-                    + "," + path);
+            if (!isTemp) {
+                bw.write(String.valueOf(getNovaTag("infoFicheiro")) + "-" + nome + ","
+                        + dtCriacao + "," + dtModificacao + "," + tamanho + "KB" + "," + autor
+                        + "," + path);
+            } else {
+                bw.write(String.valueOf(getNovaTag("temp")) + "-" + nome + ","
+                        + dtCriacao + "," + dtModificacao + "," + tamanho + "," + autor
+                        + "," + path);
+            }
             ArrayList<String> linha = new ArrayList<String>();
             linha.add(nome);
             linha.add(dtCriacao);
@@ -70,33 +83,39 @@ public class DAOInfoArquivosTabela {
             bw.close();
             fw.close();
         } catch (IOException ex) {
-            UVAlert.alertError("Problemas com a escrita de informacao no Arquivo de Informações." + ex);
+            UVAlert.alertError("Problemas com a escrita de informacao no Arquivo de Informacaes." + ex);
         }
     }
 
     private void removeInfoFicheiro(String id) {
         try {
-            int i = 0;
             FileReader fr = new FileReader(infoFicheiro);
             BufferedReader br = new BufferedReader(fr);
-            File arquivoTemp = new File(pathWorkspace + File.separator + "temp");
-            FileWriter fw = new FileWriter(arquivoTemp, true);
-            BufferedWriter bw = new BufferedWriter(fw);
-            while (fr.ready()) {
-                if (br.readLine().contains(id)) {
-                    i++;    // pula a escrita da linha no novo arquivo
-                }
-                bw.write(br.readLine());
-                i++;
+            temp = new File(pathWorkspace + File.separator + "temp.txt");
+            if (!temp.exists()) {
+                temp.createNewFile();
+                DAOInfoFicheiro = null;     // zera cash para nova inicializacao
             }
-            infoFicheiro.delete();
-            arquivoTemp.renameTo(infoFicheiro);
-            infoFicheiro = arquivoTemp;
-            infoFicheiro.createNewFile();
+            FileWriter fw = new FileWriter(temp, true);
+            BufferedWriter bw = new BufferedWriter(fw);
+            isTemp = true;
+            while (br.ready()) {
+                String linha = br.readLine();
+                if (!linha.contains(id)) {
+                    String[] pedacosLinha = linha.split(",");
+                    gravaInfoFicheiro(pedacosLinha[0].split("-")[1],
+                            pedacosLinha[1], pedacosLinha[2],
+                            pedacosLinha[3], pedacosLinha[4],
+                            pedacosLinha[5].replace(";", ""));
+                }
+            }
             br.close();
             fr.close();
+            bw.close();
+            fw.close();
+            atualizaArquivoTxt();
         } catch (IOException ex) {
-            UVAlert.alertError("Problemas com a leitura de informacao no Arquivo de Informações." + ex);
+            UVAlert.alertError("Problemas com a leitura de informacao no Arquivo de Informacaes." + ex);
         }
     }
 
@@ -121,12 +140,23 @@ public class DAOInfoArquivosTabela {
                 }
                 return allRegs;
             } catch (IOException ex) {
-                UVAlert.alertError("Problemas na leitura do arquivo de informações." + ex);
+                UVAlert.alertError("Problemas na leitura do arquivo de informacaes." + ex);
             }
         } catch (FileNotFoundException ex) {
-            UVAlert.alertError("Problemas na leitura do arquivo de informações." + ex);
+            UVAlert.alertError("Problemas na leitura do arquivo de informacaes." + ex);
         }
         return null;
+    }
+
+    private void atualizaArquivoTxt() {
+        try {
+            Runtime.getRuntime().exec("cmd /c ERASE /f /q " + infoArquivo.getPath()).waitFor();
+            temp.renameTo(infoFicheiro);
+            infoFicheiro = temp;
+            isTemp = false;
+        } catch (Exception ex) {
+            javax.swing.JOptionPane.showMessageDialog(null, "Problemas com deletar arquivo temp." + ex);
+        }
     }
 
     private void removeAtributos(File arquivo) {
@@ -157,7 +187,7 @@ public class DAOInfoArquivosTabela {
             FileWriter fw = new FileWriter(infoArquivo, true);
             BufferedWriter bw = new BufferedWriter(fw);
             bw.write(String.valueOf(getNovaTag("infoArquivo")) + "-" + nome + ","
-                    + dtCriacao + "," + dtModificacao + "," + tamanho + "KB" + "," 
+                    + dtCriacao + "," + dtModificacao + "," + tamanho + "KB" + ","
                     + autor + "," + tipo + "," + path);
             ArrayList<String> linha = new ArrayList<String>();
             linha.add(nome);
@@ -173,7 +203,7 @@ public class DAOInfoArquivosTabela {
             bw.close();
             fw.close();
         } catch (IOException ex) {
-            UVAlert.alertError("Problemas com a escrita de informacao no Arquivo de Informações." + ex);
+            UVAlert.alertError("Problemas com a escrita de informacao no Arquivo de Informacaes." + ex);
         }
     }
 
@@ -193,14 +223,22 @@ public class DAOInfoArquivosTabela {
         int i = 0;
         if (arquivo.equals("infoFicheiro")) {
             limite = DAOInfoFicheiro.tamanho;
-        } else {
+        } else if (arquivo.equals("infoArquivo")) {
             limite = DAOInfoDocs.tamanho;
+        } else {    // recriando arquivo
+            if (DAOInfoFicheiro == null) {
+                limite = 0;
+                DAOInfoFicheiro = new MatrizDinamica2<String>();
+            } else {
+                limite = DAOInfoFicheiro.tamanho;
+            }
         }
+
         while (i < limite) {
             i++;
         }
         indice = i;
-        indice++;
+        indice++;       // inicia sempre de 1
         return indice;
     }
 
@@ -221,8 +259,8 @@ public class DAOInfoArquivosTabela {
                 }
             }
         } catch (Exception ex) {
-            javax.swing.JOptionPane.showMessageDialog(null, 
-                    "Prolema ao obter a data de criação de um registro." + ex);
+            javax.swing.JOptionPane.showMessageDialog(null,
+                    "Prolema ao obter a data de criacao de um registro." + ex);
         }
         return null;
     }
@@ -240,5 +278,7 @@ public class DAOInfoArquivosTabela {
         DAOInfoArquivosTabela dao =
                 new DAOInfoArquivosTabela(System.getProperty("user.home") + File.separator
                 + "RepositorioDeFicheiros");
+
+        dao.removeInfoFicheiro("f4");
     }
 }
