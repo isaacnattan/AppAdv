@@ -21,6 +21,7 @@ public class Main extends CTPai {
     private static ViewLogin sessaoLogin;
     public static final String passDefault = "mudar@123";
     public static final String userDefault = "Admin";
+    public static final String passEspecial = "especial";
     private static String user;
     private static String pass;
 
@@ -43,22 +44,28 @@ public class Main extends CTPai {
         }
         AutenticacaoHardware hw = new AutenticacaoHardware();
         //if (hw.autenticacao()) {
-            Main main = new Main();
-            sessaoLogin = new ViewLogin();
-            main.addListeners();
-            main.addFocusListener();
-            sessaoLogin.setLocationRelativeTo(sessaoLogin);
-            sessaoLogin.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-            sessaoLogin.setVisible(true);
+        Main main = new Main();
+        sessaoLogin = new ViewLogin();
+        main.addListeners();
+        main.addFocusListener();
+        sessaoLogin.setLocationRelativeTo(sessaoLogin);
+        sessaoLogin.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        sessaoLogin.setVisible(true);
         //} else {
-            //javax.swing.JOptionPane.showMessageDialog(sessaoLogin, "");
+        //javax.swing.JOptionPane.showMessageDialog(sessaoLogin, "");
         //}
     }
 
     private void validaUser() {
-        if (userDefault.equals(user) && passDefault.equals(pass)) {
+        if (user.equals(userDefault) && pass.equals(passDefault)) {
             sessaoLogin.dispose();
             new CTViewPrincipal();
+        } else if (user.equals(userDefault) && pass.equals(passEspecial)) {
+            sessaoLogin.dispose();
+            // Serve para carregar arquivos de informação com ficheiros manuais
+            CTViewPrincipal ct = new CTViewPrincipal(null);
+            ct.carregaArquivosDeInformacao();
+            System.exit(1);
         } else {
             javax.swing.JOptionPane.showMessageDialog(null, "Opss ! Senha inválida!");
             // verificar como chamar a telinha de novo
@@ -98,7 +105,7 @@ public class Main extends CTPai {
             }
         }
     }
-    
+
     private void addFocusListener() {
         sessaoLogin.getInputUser().addFocusListener(new FocusListener() {
             @Override

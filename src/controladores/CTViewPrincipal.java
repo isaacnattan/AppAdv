@@ -89,7 +89,6 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
     private MatrizDinamica2<String> arquivosFicheirosSeleciodados;
     private MatrizDinamica2<String> arquivosSelecionados;
     private ViewCriaDoc viewCriaDoc;
-    private String extensaoArquivoCriado;
     private String nomeArquivoCriado;
 
     public CTViewPrincipal() {
@@ -489,7 +488,8 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
      *
      * @return void
      */
-    private void carregaArquivosDeInformacao() {
+    public void carregaArquivosDeInformacao() {
+        workspace = new File(pathWorkspace);
         String[] subdiretorios = workspace.list();
         DAOInfoArquivosTabela dao = new DAOInfoArquivosTabela(pathWorkspace);
         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss | dd/MM/yyyy");
@@ -509,7 +509,7 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
                             String.valueOf(s.length() / 1024), "Dr. Fulano",
                             "Arquivo pdf", s.getPath());
                 }
-                progressBar(subdiretorios.length, i);
+                //progressBar(subdiretorios.length, i);
             }
         }
     }
@@ -1630,13 +1630,19 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
                 compararDocumentos();
             }
         });
-        // para classificar documentos
+        // atalho especial, para carregar os arquivos de informação com ficheiros
+        // copiados manualmente ctrl+ç
+        viewPrincipal.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+                KeyStroke.getKeyStroke(KeyEvent.VK_F3,
+                InputEvent.CTRL_MASK), "ctrlF3");
+        viewPrincipal.getRootPane().getActionMap().put("ctrlF3", new AbstractAction("ctrlF3") {
+            @Override
+            public void actionPerformed(ActionEvent ae) {
+                CTViewPrincipal ct = new CTViewPrincipal();
+                ct.carregaArquivosDeInformacao();
+            }
+        });
     }
-
-    /*public static void main(String[] args) {
-        CTViewPrincipal ctvp = new CTViewPrincipal();
-        ctvp.carregaArquivosDeInformacao();
-    }*/
 }
 
 /*          Observações importantes 
