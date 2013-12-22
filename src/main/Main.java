@@ -45,17 +45,17 @@ public class Main extends CTPai {
             javax.swing.JOptionPane.showMessageDialog(null, ex);
         }
         AutenticacaoHardware hw = new AutenticacaoHardware();
-        //if (hw.autenticacao()) {
-        Main main = new Main();
-        sessaoLogin = new ViewLogin();
-        main.addListeners();
-        main.addFocusListener();
-        sessaoLogin.setLocationRelativeTo(sessaoLogin);
-        sessaoLogin.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        sessaoLogin.setVisible(true);
-        //} else {
-        //javax.swing.JOptionPane.showMessageDialog(sessaoLogin, "");
-        //}
+        if (hw.autenticacao()) {
+            Main main = new Main();
+            sessaoLogin = new ViewLogin();
+            main.addListeners();
+            main.addFocusListener();
+            sessaoLogin.setLocationRelativeTo(sessaoLogin);
+            sessaoLogin.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            sessaoLogin.setVisible(true);
+        } else {
+            javax.swing.JOptionPane.showMessageDialog(sessaoLogin, "");
+        }
     }
 
     private void validaUser() {
@@ -68,9 +68,9 @@ public class Main extends CTPai {
             CTViewPrincipal ct = new CTViewPrincipal(null);
             try {
                 // apagar os arquivos de informacao
-                Runtime.getRuntime().exec("cmd /c del /q /f " + System.getProperty("user.home") 
+                Runtime.getRuntime().exec("cmd /c del /q /f " + System.getProperty("user.home")
                         + File.separator + "RepositorioDeFicheiros" + File.separator + "infoTabFicheiro.txt").waitFor();
-                Runtime.getRuntime().exec("cmd /c del /q /f " + System.getProperty("user.home") 
+                Runtime.getRuntime().exec("cmd /c del /q /f " + System.getProperty("user.home")
                         + File.separator + "RepositorioDeFicheiros" + File.separator + "infoTabArquivo.txt").waitFor();
             } catch (IOException ex) {
                 javax.swing.JOptionPane.showMessageDialog(sessaoLogin,

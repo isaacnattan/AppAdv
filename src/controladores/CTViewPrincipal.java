@@ -301,12 +301,12 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
                     if (mensagemDeConfirmacaoRemover(true) == JOptionPane.YES_OPTION) {
                         ficheiro = new File(ficheirosSelecionados.obtemElementoLinha(0, 5).replace(";", "").trim());
                         deleteDir(ficheiro);
-                        //Remover o conteudo das duas tabelas
-                        modeloTabelaDocumento.limparTabela();   // Retira todos os registros da tabela de documentos
-                        modeloTabelaFicheiro.removeLinha(viewPrincipal.getTabelaFicheiros().getSelectedRow());
-                        // remover o registro dos ficheiros
+                        // remover o registro do cache de informacao
                         removeInfoCash(ficheiro, true);
                         // remover tambem do arquivo de informacao
+                        DAOInfoArquivosTabela dao = new DAOInfoArquivosTabela(pathWorkspace);
+                        dao.removeInfoFicheiro(ficheirosSelecionados.obtemElementoLinha(
+                                ficheirosSelecionados.tamanho - 1, 0).split("-")[1]);
                     } else {
                         javax.swing.JOptionPane.showMessageDialog(painelProgress, "Ação cancelada pelo usuário.");
                     }
@@ -317,8 +317,6 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
                     if (mensagemDeConfirmacaoRemover(true) == JOptionPane.YES_OPTION) {
                         for (int i = 0; i < ficheirosSelecionados.tamanho; i++) {
                             deleteDir(new File(ficheirosSelecionados.obtemElementoLinha(i, 5).replace(";", "").trim()));
-                            //Remover o conteudo das duas tabelas
-                            modeloTabelaFicheiro.removeLinha(linhasSelecionadas[i]);
                             // remover o registro dos ficheiros
                             removeInfoCash(ficheiro, true);
                             // remover tambem do arquivo de informacao
@@ -949,14 +947,14 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
     }
 
     private void compararFicheiros() {
-        if (linhasSelecionadas == null) {
+        if (ficheirosSelecionados == null) {
             javax.swing.JOptionPane.showMessageDialog(viewPrincipal,
                     "Voce deve selecionar dois ficheiros para realizar a comparação.");
-        } else if (linhasSelecionadas.length == 2) {
-            File ficheiro1 = new File(pathWorkspace + File.separator
-                    + conteudoLinhaSelecionadaTabelaFicheiro.obtemElementoLinha(0, 0));
-            File ficheiro2 = new File(pathWorkspace + File.separator
-                    + conteudoLinhaSelecionadaTabelaFicheiro.obtemElementoLinha(1, 0));
+        } else if (ficheirosSelecionados.tamanho == 2) {
+            File ficheiro1 = new File(ficheirosSelecionados.obtemElementoLinha(
+                    ficheirosSelecionados.tamanho - 2, 5));
+            File ficheiro2 = new File(ficheirosSelecionados.obtemElementoLinha(
+                    ficheirosSelecionados.tamanho - 1, 5));
             String[] conteudoFicheiro1 = ficheiro1.list();
             String[] conteudoFicheiro2 = ficheiro2.list();
             if (conteudoFicheiro1 == null && conteudoFicheiro2 == null) {     //Ficheiros iguais (ambos vazios)
@@ -1109,55 +1107,54 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
         }
         int returnVal = fc.showSaveDialog(viewPrincipal);
         if (returnVal == JFileChooser.APPROVE_OPTION) {
-            if (viewPrincipal.getTabelaFicheiros().getSelectedRows().length == 1) {
-                File file = fc.getSelectedFile();
-                try {
-                    File destino = null;
-                    if (isFicheiro) {
-                        destino = new File(pathWorkspace + File.separator + file.getName());
-                        // Cria uma pasta no workspace com o mesmo nome do arquivo a ser copiado
-                        destino.mkdir();
-                    } else {
-                        // Copia o arquivo para o ficheiro que esta selecionado
-                        if (viewPrincipal.getTabelaFicheiros().getSelectedRows().length == 1) {
-                            destino = new File(pathWorkspace + File.separator
-                                    + modeloTabelaFicheiro.getLinhaTabela(
-                                    viewPrincipal.getTabelaFicheiros().getSelectedRow()).get(0)
-                                    + File.separator + file.getName());
-                        }
+            File file = fc.getSelectedFile();
+            try {
+                File destino = null;
+                if (isFicheiro) {
+                    destino = new File(pathWorkspace + File.separator + file.getName());
+                    // Cria uma pasta no workspace com o mesmo nome do arquivo a ser copiado
+                    destino.mkdir();
+                    // Adiciona registro ao cache de Ficheiros
+                    
+                    // Adiciona registro ao arquivo de informacoes
+                    
+                } else {
+                    // Copia o arquivo para o ficheiro que esta selecionado
+                    if (viewPrincipal.getTabelaFicheiros().getSelectedRows().length == 1) {
+                        destino = new File(pathWorkspace + File.separator
+                                + modeloTabelaFicheiro.getLinhaTabela(
+                                viewPrincipal.getTabelaFicheiros().getSelectedRow()).get(0)
+                                + File.separator + file.getName());
                     }
-                    if (isFicheiro) {
-                        // Perde portabilidade, tratar isso mais a frente
-                        Runtime.getRuntime().exec("cmd /c xcopy /E "
-                                + "\"" + file + "\"" + " " + "\"" + destino + "\"");
-                    } else {
-                        if (!destino.isDirectory()) {
-                            File destiny = new File(pathWorkspace + File.separator
-                                    + modeloTabelaFicheiro.getLinhaTabela(viewPrincipal.
-                                    getTabelaFicheiros().getSelectedRow()).get(0));
-                            Runtime.getRuntime().exec("cmd /c xcopy "
-                                    + "\"" + file + "\"" + " " + "\"" + destiny + "\"");
-                        } else {
-                            File ficheiro = new File(destino + File.separator + file.getName());
-                            // Cria uma pasta no workspace com o mesmo nome do arquivo a ser copiado
-                            ficheiro.mkdir();
-                            Runtime.getRuntime().exec("cmd /c xcopy /E "
-                                    + "\"" + file + "\"" + " " + "\"" + ficheiro + "\"");
-                        }
-                    }
-                    //Atualiza tabela para exibir novo ficheiro
-                    modeloTabelaDocumento.limparTabela();   // Retira todos os registros da tabela de documentos
-                    modeloTabelaFicheiro.limparTabela();    // Retira todos os registros da tabela de ficheiros
-                    carregaFicheiros();                     // recarrega ficheiros
-                    modeloTabelaDocumento.fireTableDataChanged();
-                    modeloTabelaFicheiro.fireTableDataChanged();
-                } catch (Exception ex) {
-                    javax.swing.JOptionPane.showMessageDialog(viewPrincipal,
-                            "Problemas na importação de arquivos" + ex);
                 }
-            } else {
-                javax.swing.JOptionPane.showMessageDialog(null,
-                        "Você deve primeiro selecionar um ficheiro para importar arquivos.");
+                if (isFicheiro) {
+                    // Perde portabilidade, tratar isso mais a frente
+                    Runtime.getRuntime().exec("cmd /c xcopy /E "
+                            + "\"" + file + "\"" + " " + "\"" + destino + "\"");
+                } else {
+                    if (!destino.isDirectory()) {
+                        File destiny = new File(pathWorkspace + File.separator
+                                + modeloTabelaFicheiro.getLinhaTabela(viewPrincipal.
+                                getTabelaFicheiros().getSelectedRow()).get(0));
+                        Runtime.getRuntime().exec("cmd /c xcopy "
+                                + "\"" + file + "\"" + " " + "\"" + destiny + "\"");
+                    } else {
+                        File ficheiro = new File(destino + File.separator + file.getName());
+                        // Cria uma pasta no workspace com o mesmo nome do arquivo a ser copiado
+                        ficheiro.mkdir();
+                        Runtime.getRuntime().exec("cmd /c xcopy /E "
+                                + "\"" + file + "\"" + " " + "\"" + ficheiro + "\"");
+                    }
+                }
+                //Atualiza tabela para exibir novo ficheiro
+                modeloTabelaDocumento.limparTabela();   // Retira todos os registros da tabela de documentos
+                modeloTabelaFicheiro.limparTabela();    // Retira todos os registros da tabela de ficheiros
+                carregaFicheiros();                     // recarrega ficheiros
+                modeloTabelaDocumento.fireTableDataChanged();
+                modeloTabelaFicheiro.fireTableDataChanged();
+            } catch (Exception ex) {
+                javax.swing.JOptionPane.showMessageDialog(viewPrincipal,
+                        "Problemas na importação de arquivos" + ex);
             }
         } else {
             javax.swing.JOptionPane.showMessageDialog(null, "Ação cancelada pelo usuário.");
@@ -1383,6 +1380,32 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
         }
         return size;
     }
+    
+    private void adicionaRegistroCacheFicheiroETxt(String path){
+        File pastaUsuario = new File(path);
+        // Captura data para adicionar ao registro [isso eh conteudo para outro metodo]
+        Date dataCriacao = new Date(pastaUsuario.lastModified());
+        DateFormat sdfInterface = new SimpleDateFormat("HH:mm:ss, dd/MM/yyyy");
+        DateFormat sdfInfo = new SimpleDateFormat("HH:mm:ss | dd/MM/yyyy");
+        String lastModifiedInterface = sdfInterface.format(dataCriacao);
+        String lastModifiedInfo = sdfInfo.format(dataCriacao);
+        addLinhaTabelaFicheiro(idFicheiro, lastModifiedInterface, lastModifiedInterface,
+                String.valueOf(pastaUsuario.length()), "Dr. Fulano");
+        // Grava informacoes no arquivo de texto
+        DAOInfoArquivosTabela dao = new DAOInfoArquivosTabela(pathWorkspace);
+        dao.gravaInfoFicheiro(idFicheiro, lastModifiedInfo, lastModifiedInfo,
+                String.valueOf(pastaUsuario.length()), "Dr. Fulano",
+                pastaUsuario.getPath());
+        // grava informacoes no arquivo de acesso rapido
+        ArrayList<String> linha = new ArrayList<String>();
+        linha.add(String.valueOf(dao.getNovaTag("infoFicheiro") - 1) + "-" + idFicheiro);
+        linha.add(lastModifiedInfo);
+        linha.add(lastModifiedInfo);
+        linha.add(String.valueOf(pastaUsuario.length() / 1024) + " KB");
+        linha.add("Dr. Fulano");
+        linha.add(pastaUsuario.getPath());
+        cacheFicheiros.adicionaLinha(linha);
+    }
 
     private void adicionarFicheiro() {
         // Esse Metodo deve adicionar uma pasta no workspace do usuario
@@ -1428,7 +1451,7 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
                 pastaUsuario.getPath());
         // grava informacoes no arquivo de acesso rapido
         ArrayList<String> linha = new ArrayList<String>();
-        linha.add(idFicheiro);
+        linha.add(String.valueOf(dao.getNovaTag("infoFicheiro") - 1) + "-" + idFicheiro);
         linha.add(lastModifiedInfo);
         linha.add(lastModifiedInfo);
         linha.add(String.valueOf(pastaUsuario.length() / 1024) + " KB");

@@ -87,7 +87,7 @@ public class DAOInfoArquivosTabela {
         }
     }
 
-    private void removeInfoFicheiro(String id) {
+    public void removeInfoFicheiro(String id) {
         try {
             FileReader fr = new FileReader(infoFicheiro);
             BufferedReader br = new BufferedReader(fr);
@@ -113,9 +113,40 @@ public class DAOInfoArquivosTabela {
             fr.close();
             bw.close();
             fw.close();
-            atualizaArquivoTxt();
+            destroiArquivosDeInformacao();
+            // o temporario eh renomeado
+            temp.renameTo(infoFicheiro);
+            // entao sede sua referencia 
+            infoFicheiro = temp;
+            carregaVarDAOInfoFicheiro();
+            // depois eh morto
+            temp = null;
+            isTemp = false;
         } catch (IOException ex) {
             UVAlert.alertError("Problemas com a leitura de informacao no Arquivo de Informacaes." + ex);
+        }
+    }
+
+    private void carregaVarDAOInfoFicheiro() {
+        try {
+            FileReader fr = new FileReader(temp);
+            BufferedReader br = new BufferedReader(fr);
+            while(br.ready()){
+                String [] linha = br.readLine().split(",");
+                ArrayList<String> line = new ArrayList<String>();
+                line.add(linha[0]);
+                line.add(linha[1]);
+                line.add(linha[2]);
+                line.add(linha[3]);
+                line.add(linha[4]);
+                line.add(linha[5]);
+                DAOInfoFicheiro.adicionaLinha(line);
+            }
+            
+        } catch (FileNotFoundException ex) {
+            UVAlert.alertError("Problemas com o carregamento da variavel dao. " + ex);
+        } catch (IOException ex) {
+            UVAlert.alertError("Problemas com o carregamento da variavel dao. " + ex);
         }
     }
 
@@ -148,15 +179,19 @@ public class DAOInfoArquivosTabela {
         return null;
     }
 
-    private void atualizaArquivoTxt() {
+    private void destroiArquivosDeInformacao() {
         try {
-            Runtime.getRuntime().exec("cmd /c ERASE /f /q " + infoArquivo.getPath()).waitFor();
-            temp.renameTo(infoFicheiro);
-            infoFicheiro = temp;
-            isTemp = false;
+            Runtime.getRuntime().exec("cmd /c del /q /f " + System.getProperty("user.home")
+                    + File.separator + "RepositorioDeFicheiros" + File.separator + "infoTabFicheiro.txt").waitFor();
+            Runtime.getRuntime().exec("cmd /c del /q /f " + System.getProperty("user.home")
+                    + File.separator + "RepositorioDeFicheiros" + File.separator + "infoTabArquivo.txt").waitFor();
         } catch (Exception ex) {
             javax.swing.JOptionPane.showMessageDialog(null, "Problemas com deletar arquivo temp." + ex);
         }
+    }
+
+    // recria arquivos de informacao com base 
+    private void recriaArquivosDeInformacao() {
     }
 
     private void removeAtributos(File arquivo) {
