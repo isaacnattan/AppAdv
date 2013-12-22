@@ -1114,10 +1114,6 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
                     destino = new File(pathWorkspace + File.separator + file.getName());
                     // Cria uma pasta no workspace com o mesmo nome do arquivo a ser copiado
                     destino.mkdir();
-                    // Adiciona registro ao cache de Ficheiros
-                    
-                    // Adiciona registro ao arquivo de informacoes
-                    
                 } else {
                     // Copia o arquivo para o ficheiro que esta selecionado
                     if (viewPrincipal.getTabelaFicheiros().getSelectedRows().length == 1) {
@@ -1131,6 +1127,7 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
                     // Perde portabilidade, tratar isso mais a frente
                     Runtime.getRuntime().exec("cmd /c xcopy /E "
                             + "\"" + file + "\"" + " " + "\"" + destino + "\"");
+                    adicionaRegistroCacheFicheiroETxt(destino.getPath());
                 } else {
                     if (!destino.isDirectory()) {
                         File destiny = new File(pathWorkspace + File.separator
@@ -1333,7 +1330,7 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
             linha.add("arquivo de texto");
             linha.add(arquivo.getPath());
             cacheArquivos.adicionaLinha(linha);
-            // Adiciona informacao no DAO
+            // Adiciona informacao no arquivo de informacao
             dao.gravaInfoArquivo(idArquivo, lastModifiedInfo, lastModifiedInfo,
                     String.valueOf(arquivo.length() / 1024), "Dr. Fulano",
                     "arquivo de texto", arquivo.getPath());
@@ -1381,30 +1378,62 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
         return size;
     }
     
-    private void adicionaRegistroCacheFicheiroETxt(String path){
-        File pastaUsuario = new File(path);
-        // Captura data para adicionar ao registro [isso eh conteudo para outro metodo]
-        Date dataCriacao = new Date(pastaUsuario.lastModified());
-        DateFormat sdfInterface = new SimpleDateFormat("HH:mm:ss, dd/MM/yyyy");
-        DateFormat sdfInfo = new SimpleDateFormat("HH:mm:ss | dd/MM/yyyy");
-        String lastModifiedInterface = sdfInterface.format(dataCriacao);
-        String lastModifiedInfo = sdfInfo.format(dataCriacao);
-        addLinhaTabelaFicheiro(idFicheiro, lastModifiedInterface, lastModifiedInterface,
-                String.valueOf(pastaUsuario.length()), "Dr. Fulano");
-        // Grava informacoes no arquivo de texto
-        DAOInfoArquivosTabela dao = new DAOInfoArquivosTabela(pathWorkspace);
-        dao.gravaInfoFicheiro(idFicheiro, lastModifiedInfo, lastModifiedInfo,
-                String.valueOf(pastaUsuario.length()), "Dr. Fulano",
-                pastaUsuario.getPath());
-        // grava informacoes no arquivo de acesso rapido
-        ArrayList<String> linha = new ArrayList<String>();
-        linha.add(String.valueOf(dao.getNovaTag("infoFicheiro") - 1) + "-" + idFicheiro);
-        linha.add(lastModifiedInfo);
-        linha.add(lastModifiedInfo);
-        linha.add(String.valueOf(pastaUsuario.length() / 1024) + " KB");
-        linha.add("Dr. Fulano");
-        linha.add(pastaUsuario.getPath());
-        cacheFicheiros.adicionaLinha(linha);
+    // Algoritmo funcionando somente para ficheiros.
+    // Adiciona corretamente as informacoes nos caches
+    // e arquivos de informacao
+    private void adicionaRegistroCacheFicheiroETxt(String path) {
+        File arquivo = new File(path);
+        if (arquivo.isDirectory()) {
+            // encontrar id no path
+            String idFicheiro = path.replace("\\", "/").split("/")[4];
+            // Captura data para adicionar ao registro [isso eh conteudo para outro metodo]
+            Date dataCriacao = new Date(arquivo.lastModified());
+            DateFormat sdfInterface = new SimpleDateFormat("HH:mm:ss, dd/MM/yyyy");
+            DateFormat sdfInfo = new SimpleDateFormat("HH:mm:ss | dd/MM/yyyy");
+            String lastModifiedInterface = sdfInterface.format(dataCriacao);
+            String lastModifiedInfo = sdfInfo.format(dataCriacao);
+            addLinhaTabelaFicheiro(idFicheiro, lastModifiedInterface, lastModifiedInterface,
+                    String.valueOf(arquivo.length()), "Dr. Fulano");
+            // Grava informacoes no arquivo de texto
+            DAOInfoArquivosTabela dao = new DAOInfoArquivosTabela(pathWorkspace);
+            dao.gravaInfoFicheiro(idFicheiro, lastModifiedInfo, lastModifiedInfo,
+                    String.valueOf(arquivo.length()), "Dr. Fulano",
+                    arquivo.getPath());
+            // grava informacoes no arquivo de acesso rapido
+            ArrayList<String> linha = new ArrayList<String>();
+            linha.add(String.valueOf(dao.getNovaTag("infoFicheiro") - 1) + "-" + idFicheiro);
+            linha.add(lastModifiedInfo);
+            linha.add(lastModifiedInfo);
+            linha.add(String.valueOf(arquivo.length() / 1024) + " KB");
+            linha.add("Dr. Fulano");
+            linha.add(arquivo.getPath());
+            cacheFicheiros.adicionaLinha(linha);
+            // Gravar informacoes dos subarquivos
+            String[] subArquivos = arquivo.list();
+            for (int i = 0; i < subArquivos.length; i++) {
+                // grava info no cache de info
+                File subArq = new File(arquivo.getPath() + File.separator + subArquivos[i]);
+                Date dtCri = new Date(subArq.lastModified());
+                ArrayList<String> linhaSub = new ArrayList<String>();
+                linhaSub.add(String.valueOf(dao.getNovaTag("infoArquivo")) + "-" + subArquivos[i]);
+                linhaSub.add(sdfInfo.format(dtCri));
+                linhaSub.add(sdfInfo.format(dtCri));
+                linhaSub.add(String.valueOf(subArq.length() / 1024) + " KB");
+                linhaSub.add("Dr. Fulano");
+                linhaSub.add("arquivo pdf");
+                linhaSub.add(subArq.getPath());
+                cacheArquivos.adicionaLinha(linhaSub);
+                // grava tambem no arquivo de persistencia
+                dao.gravaInfoArquivo(subArquivos[i],
+                        sdfInfo.format(dtCri), 
+                        sdfInfo.format(dtCri), 
+                        String.valueOf(subArq.length() / 1024), 
+                        "Dr. Fulano", 
+                        "arquivo pdf", 
+                        subArq.getPath());
+            }
+        } else {
+        }
     }
 
     private void adicionarFicheiro() {
@@ -1436,28 +1465,7 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
         }
         javax.swing.JOptionPane.showMessageDialog(viewPrincipal,
                 "Diretório criado com sucesso !");
-        // Captura data para adicionar ao registro [isso eh conteudo para outro metodo]
-        Date dataCriacao = new Date(pastaUsuario.lastModified());
-        DateFormat sdfInterface = new SimpleDateFormat("HH:mm:ss, dd/MM/yyyy");
-        DateFormat sdfInfo = new SimpleDateFormat("HH:mm:ss | dd/MM/yyyy");
-        String lastModifiedInterface = sdfInterface.format(dataCriacao);
-        String lastModifiedInfo = sdfInfo.format(dataCriacao);
-        addLinhaTabelaFicheiro(idFicheiro, lastModifiedInterface, lastModifiedInterface,
-                String.valueOf(pastaUsuario.length()), "Dr. Fulano");
-        // Grava informacoes no arquivo de texto
-        DAOInfoArquivosTabela dao = new DAOInfoArquivosTabela(pathWorkspace);
-        dao.gravaInfoFicheiro(idFicheiro, lastModifiedInfo, lastModifiedInfo,
-                String.valueOf(pastaUsuario.length()), "Dr. Fulano",
-                pastaUsuario.getPath());
-        // grava informacoes no arquivo de acesso rapido
-        ArrayList<String> linha = new ArrayList<String>();
-        linha.add(String.valueOf(dao.getNovaTag("infoFicheiro") - 1) + "-" + idFicheiro);
-        linha.add(lastModifiedInfo);
-        linha.add(lastModifiedInfo);
-        linha.add(String.valueOf(pastaUsuario.length() / 1024) + " KB");
-        linha.add("Dr. Fulano");
-        linha.add(pastaUsuario.getPath());
-        cacheFicheiros.adicionaLinha(linha);
+        adicionaRegistroCacheFicheiroETxt(pastaUsuario.getPath());
     }
 
     private ArrayList<String> getCabecalhoTabelaFicheiro() {
@@ -1676,6 +1684,14 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
                 ct.carregaArquivosDeInformacao();
             }
         });
+    }
+
+    public static void main(String[] args) {
+        CTViewPrincipal ctv = new CTViewPrincipal();
+        /*ctv.adicionaRegistroCacheFicheiroETxt(pathWorkspace + File.separator
+         + "outro teste" + File.separator + "teste.txt");*/
+        ctv.adicionaRegistroCacheFicheiroETxt(System.getProperty("user.home")
+                + File.separator + "Desktop\\testeDesempenho2\\568");
     }
 }
 
