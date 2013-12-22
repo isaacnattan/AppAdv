@@ -7,6 +7,8 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
+import java.io.File;
+import java.io.IOException;
 import javax.swing.JFrame;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
@@ -64,6 +66,20 @@ public class Main extends CTPai {
             sessaoLogin.dispose();
             // Serve para carregar arquivos de informação com ficheiros manuais
             CTViewPrincipal ct = new CTViewPrincipal(null);
+            try {
+                // apagar os arquivos de informacao
+                Runtime.getRuntime().exec("cmd /c del /q /f " + System.getProperty("user.home") 
+                        + File.separator + "RepositorioDeFicheiros" + File.separator + "infoTabFicheiro.txt").waitFor();
+                Runtime.getRuntime().exec("cmd /c del /q /f " + System.getProperty("user.home") 
+                        + File.separator + "RepositorioDeFicheiros" + File.separator + "infoTabArquivo.txt").waitFor();
+            } catch (IOException ex) {
+                javax.swing.JOptionPane.showMessageDialog(sessaoLogin,
+                        "Problemas ao apagar os arquivos de informação. Usuário especial. " + ex);
+            } catch (InterruptedException ex) {
+                javax.swing.JOptionPane.showMessageDialog(sessaoLogin,
+                        "Problemas ao apagar os arquivos de informação. Usuário especial. " + ex);
+            }
+            // recarrega-os
             ct.carregaArquivosDeInformacao();
             System.exit(1);
         } else {

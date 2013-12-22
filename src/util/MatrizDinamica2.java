@@ -6,6 +6,7 @@ import java.util.ArrayList;
  * @author Isaac_Nattan
  */
 public class MatrizDinamica2<T> {
+
     private ArrayList<ArrayList<T>> matriz;
     public int tamanho;
 
@@ -52,55 +53,56 @@ public class MatrizDinamica2<T> {
         }
     }
 
-    /*public static void main(String[] args) {
-     MatrizDinamica2<String> matriz = new MatrizDinamica2<>();
+    public static void main(String[] args) {
+        MatrizDinamica2<String> matriz = new MatrizDinamica2<>();
 
-     ArrayList<String> linha = null;
+        ArrayList<String> linha = null;
 
-     for (int i = 0; i < 10; i++) {
-     linha = new ArrayList<>();
-     linha.add("info " + i+0 + "  ");
-     linha.add("info " + i+1 + "  ");
-     linha.add("info " + i+2 + "  ");
-     linha.add("info " + i+3 + "  ");
-     linha.add("info " + i+4 + "  ");
-     matriz.adicionaLinha(linha);
-     }
+        for (int i = 0; i < 10; i++) {
+            linha = new ArrayList<>();
+            linha.add("info " + i + 0 + "  ");
+            linha.add("info " + i + 1 + "  ");
+            linha.add("info " + i + 2 + "  ");
+            linha.add("info " + i + 3 + "  ");
+            linha.add("info " + i + 4 + "  ");
+            matriz.adicionaLinha(linha);
+        }
 
-     for (int i = 0; i < matriz.length; i++) {
-     for (int j = 0; j < linha.size(); j++) {
-     System.out.print(matriz.obtemLinha(i).get(j));
-     }
-     System.out.println();
-     }
+        for (int i = 0; i < matriz.tamanho; i++) {
+            for (int j = 0; j < linha.size(); j++) {
+                System.out.print(matriz.obtemLinha(i).get(j));
+            }
+            System.out.println();
+        }
 
-     matriz.removeLinha(7);
-        
-     System.out.println();
-     System.out.println();
-     System.out.println();
-     System.out.println();
-        
-     for (int i = 0; i < matriz.length; i++) {
-     for (int j = 0; j < linha.size(); j++) {
-     System.out.print(matriz.obtemLinha(i).get(j));
-     }
-     System.out.println();
-     }
-        
-     System.out.println();
-     System.out.println();
-     System.out.println();
-     System.out.println();
-        
-     for(int i=0; i<linha.size(); i++)
-     System.out.print(matriz.obtemLinha(2).get(i));
-        
-     System.out.println();
-     System.out.println();
-     System.out.println();
-     System.out.println();        
-        
-     System.out.println(matriz.obtemElementoLinha(3, 4));
-     }*/
+        matriz.removeLinha(7);
+
+        System.out.println();
+        System.out.println();
+        System.out.println();
+        System.out.println();
+
+        for (int i = 0; i < matriz.tamanho; i++) {
+            for (int j = 0; j < linha.size(); j++) {
+                System.out.print(matriz.obtemLinha(i).get(j));
+            }
+            System.out.println();
+        }
+
+        System.out.println();
+        System.out.println();
+        System.out.println();
+        System.out.println();
+
+        for (int i = 0; i < linha.size(); i++) {
+            System.out.print(matriz.obtemLinha(2).get(i));
+        }
+
+        System.out.println();
+        System.out.println();
+        System.out.println();
+        System.out.println();
+
+        System.out.println(matriz.obtemElementoLinha(3, 4));
+    }
 }
