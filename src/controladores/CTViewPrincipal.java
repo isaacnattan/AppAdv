@@ -230,7 +230,7 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
             criarDocumento(nomeArquivoCriado + ".docx");
         } else if (me.getSource() == viewCriaDoc.getBtExcel()) {
             viewCriaDoc.dispose();
-            criarDocumento(nomeArquivoCriado + ".xlsx");
+            criarDocumento(nomeArquivoCriado + ".xls");
         } else if (me.getSource() == viewCriaDoc.getBtPowerPoint()) {
             viewCriaDoc.dispose();
             criarDocumento(nomeArquivoCriado + ".ppt");
@@ -262,8 +262,8 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
     }
 
     private void renomeiaRegistroCacheFicheiro(String antigoNome, String novoNome) {
-        for (int i = 0; i < ficheirosSelecionados.tamanho; i++) {
-            if (antigoNome.equals(ficheirosSelecionados.obtemElementoLinha(i, 0).split("-")[1])) {
+        for (int i = 0; i < cacheFicheiros.tamanho; i++) {
+            if (antigoNome.equals(cacheFicheiros.obtemElementoLinha(i, 0).split("-")[1])) {
                 // trocar o nome e o path
                 System.out.println(ficheirosSelecionados.obtemElementoLinha(i, 0).split("-")[1]);
             }
@@ -307,6 +307,19 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
                         DAOInfoArquivosTabela dao = new DAOInfoArquivosTabela(pathWorkspace);
                         dao.removeInfoFicheiro(ficheirosSelecionados.obtemElementoLinha(
                                 ficheirosSelecionados.tamanho - 1, 0).split("-")[1]);
+                        // remove arquivo infoFIcheiro
+                        int retorno;
+                        try {
+                            // apagar os arquivos de informacao
+                            retorno = Runtime.getRuntime().exec("cmd /c del /q /f " + System.getProperty("user.home")
+                                    + File.separator + "RepositorioDeFicheiros" + File.separator + "infoTabFicheiro.txt").waitFor();
+                        } catch (IOException ex) {
+                            javax.swing.JOptionPane.showMessageDialog(viewPrincipal,
+                                    "Problemas ao apagar os arquivos de informação. Usuário especial. " + ex);
+                        } catch (InterruptedException ex) {
+                            javax.swing.JOptionPane.showMessageDialog(viewPrincipal,
+                                    "Problemas ao apagar os arquivos de informação. Usuário especial. " + ex);
+                        }
                     } else {
                         javax.swing.JOptionPane.showMessageDialog(painelProgress, "Ação cancelada pelo usuário.");
                     }
@@ -496,7 +509,20 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
      *
      * @return void
      */
-    public void carregaArquivosDeInformacao() {
+    public void reCarregaArquivosDeInformacao() {
+        try {
+            // apagar os arquivos de informacao
+            Runtime.getRuntime().exec("cmd /c del /q /f " + System.getProperty("user.home")
+                    + File.separator + "RepositorioDeFicheiros" + File.separator + "infoTabFicheiro.txt").waitFor();
+            Runtime.getRuntime().exec("cmd /c del /q /f " + System.getProperty("user.home")
+                    + File.separator + "RepositorioDeFicheiros" + File.separator + "infoTabArquivo.txt").waitFor();
+        } catch (IOException ex) {
+            javax.swing.JOptionPane.showMessageDialog(viewPrincipal,
+                    "Problemas ao apagar os arquivos de informação. Usuário especial. " + ex);
+        } catch (InterruptedException ex) {
+            javax.swing.JOptionPane.showMessageDialog(viewPrincipal,
+                    "Problemas ao apagar os arquivos de informação. Usuário especial. " + ex);
+        }
         workspace = new File(pathWorkspace);
         String[] subdiretorios = workspace.list();
         DAOInfoArquivosTabela dao = new DAOInfoArquivosTabela(pathWorkspace);
@@ -813,7 +839,7 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
                                     renameTo(new File(pathWorkspace + File.separator + renomear));
                             // renomear registro do cache
                             renomeiaRegistroCacheFicheiro(ficheirosSelecionados.obtemElementoLinha(
-                                    ficheirosSelecionados.tamanho - 1, 5).split("-")[1], renomear);
+                                    ficheirosSelecionados.tamanho - 1, 0).split("-")[1], renomear);
                         } catch (Exception ex) {
                             javax.swing.JOptionPane.showMessageDialog(viewPrincipal, ex);
                         }
@@ -1113,7 +1139,7 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
                 if (isFicheiro) {
                     destino = new File(pathWorkspace + File.separator + file.getName());
                     // Cria uma pasta no workspace com o mesmo nome do arquivo a ser copiado
-                    destino.mkdir();
+                    //destino.mkdir();
                 } else {
                     // Copia o arquivo para o ficheiro que esta selecionado
                     if (viewPrincipal.getTabelaFicheiros().getSelectedRows().length == 1) {
@@ -1125,9 +1151,10 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
                 }
                 if (isFicheiro) {
                     // Perde portabilidade, tratar isso mais a frente
-                    Runtime.getRuntime().exec("cmd /c xcopy /E "
-                            + "\"" + file + "\"" + " " + "\"" + destino + "\"");
-                    adicionaRegistroCacheFicheiroETxt(destino.getPath());
+                    /*Runtime.getRuntime().exec("cmd /c xcopy /E "
+                     + "\"" + file + "\"" + " " + "\"" + destino + "\"");*/
+                    copiarDiretorio(file.getPath(), pathWorkspace);
+                    adicionaRegistroFicheiroCacheETxt(destino.getPath());
                 } else {
                     if (!destino.isDirectory()) {
                         File destiny = new File(pathWorkspace + File.separator
@@ -1377,11 +1404,11 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
         }
         return size;
     }
-    
+
     // Algoritmo funcionando somente para ficheiros.
     // Adiciona corretamente as informacoes nos caches
     // e arquivos de informacao
-    private void adicionaRegistroCacheFicheiroETxt(String path) {
+    private void adicionaRegistroFicheiroCacheETxt(String path) {
         File arquivo = new File(path);
         if (arquivo.isDirectory()) {
             // encontrar id no path
@@ -1425,14 +1452,15 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
                 cacheArquivos.adicionaLinha(linhaSub);
                 // grava tambem no arquivo de persistencia
                 dao.gravaInfoArquivo(subArquivos[i],
-                        sdfInfo.format(dtCri), 
-                        sdfInfo.format(dtCri), 
-                        String.valueOf(subArq.length() / 1024), 
-                        "Dr. Fulano", 
-                        "arquivo pdf", 
+                        sdfInfo.format(dtCri),
+                        sdfInfo.format(dtCri),
+                        String.valueOf(subArq.length() / 1024),
+                        "Dr. Fulano",
+                        "arquivo pdf",
                         subArq.getPath());
             }
         } else {
+            // Algoritmo para adicao de informacao de arquivo
         }
     }
 
@@ -1465,7 +1493,7 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
         }
         javax.swing.JOptionPane.showMessageDialog(viewPrincipal,
                 "Diretório criado com sucesso !");
-        adicionaRegistroCacheFicheiroETxt(pastaUsuario.getPath());
+        adicionaRegistroFicheiroCacheETxt(pastaUsuario.getPath());
     }
 
     private ArrayList<String> getCabecalhoTabelaFicheiro() {
@@ -1681,7 +1709,7 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
             @Override
             public void actionPerformed(ActionEvent ae) {
                 CTViewPrincipal ct = new CTViewPrincipal();
-                ct.carregaArquivosDeInformacao();
+                ct.reCarregaArquivosDeInformacao();
             }
         });
     }
@@ -1690,7 +1718,7 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
         CTViewPrincipal ctv = new CTViewPrincipal();
         /*ctv.adicionaRegistroCacheFicheiroETxt(pathWorkspace + File.separator
          + "outro teste" + File.separator + "teste.txt");*/
-        ctv.adicionaRegistroCacheFicheiroETxt(System.getProperty("user.home")
+        ctv.adicionaRegistroFicheiroCacheETxt(System.getProperty("user.home")
                 + File.separator + "Desktop\\testeDesempenho2\\568");
     }
 }

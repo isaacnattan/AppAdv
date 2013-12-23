@@ -91,7 +91,7 @@ public class DAOInfoArquivosTabela {
         try {
             FileReader fr = new FileReader(infoFicheiro);
             BufferedReader br = new BufferedReader(fr);
-            temp = new File(pathWorkspace + File.separator + "temp.txt");
+            temp = new File(pathWorkspace + File.separator + "tempF-" + getNewTempF() + ".txt");
             if (!temp.exists()) {
                 temp.createNewFile();
                 DAOInfoFicheiro = null;     // zera cash para nova inicializacao
@@ -101,7 +101,8 @@ public class DAOInfoArquivosTabela {
             isTemp = true;
             while (br.ready()) {
                 String linha = br.readLine();
-                if (!linha.contains(id)) {
+                String idLinha = linha.split(",")[0].split("-")[1];
+                if (!idLinha.equals(id)) {
                     String[] pedacosLinha = linha.split(",");
                     gravaInfoFicheiro(pedacosLinha[0].split("-")[1],
                             pedacosLinha[1], pedacosLinha[2],
@@ -113,26 +114,46 @@ public class DAOInfoArquivosTabela {
             fr.close();
             bw.close();
             fw.close();
+            if (infoFicheiro.exists()) {
+                infoFicheiro = null;
+            }
             destroiArquivosDeInformacao();
             // o temporario eh renomeado
-            temp.renameTo(infoFicheiro);
+            //temp.renameTo(infoFicheiro);
             // entao sede sua referencia 
-            infoFicheiro = temp;
+            //infoFicheiro = temp;
             carregaVarDAOInfoFicheiro();
             // depois eh morto
-            temp = null;
+            //temp = null;
             isTemp = false;
         } catch (IOException ex) {
             UVAlert.alertError("Problemas com a leitura de informacao no Arquivo de Informacaes." + ex);
         }
     }
 
+    private int getNewTempF() {
+        File workspsce = new File(pathWorkspace);
+        String[] temps = workspsce.list();
+        for (int i = 0; i < temps.length; i++) {
+            if (temps[i].contains(".")) {
+                if (temps[i].contains("temp")) {
+                    // retorna o proximo numero a nomear o proximo temp
+                    return Integer.parseInt(temps[i].replace(".", "/").split("/")[0].split("-")[1]) + 1;
+                }
+            }
+        }
+        // se nao tem nenhum tem entao eh o primeiro
+        return 0;
+    }
+
     private void carregaVarDAOInfoFicheiro() {
         try {
+            DAOInfoFicheiro = null;
+            DAOInfoFicheiro = new MatrizDinamica2<String>();
             FileReader fr = new FileReader(temp);
             BufferedReader br = new BufferedReader(fr);
-            while(br.ready()){
-                String [] linha = br.readLine().split(",");
+            while (br.ready()) {
+                String[] linha = br.readLine().split(",");
                 ArrayList<String> line = new ArrayList<String>();
                 line.add(linha[0]);
                 line.add(linha[1]);
@@ -142,7 +163,7 @@ public class DAOInfoArquivosTabela {
                 line.add(linha[5]);
                 DAOInfoFicheiro.adicionaLinha(line);
             }
-            
+
         } catch (FileNotFoundException ex) {
             UVAlert.alertError("Problemas com o carregamento da variavel dao. " + ex);
         } catch (IOException ex) {
@@ -183,8 +204,8 @@ public class DAOInfoArquivosTabela {
         try {
             Runtime.getRuntime().exec("cmd /c del /q /f " + System.getProperty("user.home")
                     + File.separator + "RepositorioDeFicheiros" + File.separator + "infoTabFicheiro.txt").waitFor();
-            Runtime.getRuntime().exec("cmd /c del /q /f " + System.getProperty("user.home")
-                    + File.separator + "RepositorioDeFicheiros" + File.separator + "infoTabArquivo.txt").waitFor();
+            /*Runtime.getRuntime().exec("cmd /c del /q /f " + System.getProperty("user.home")
+             + File.separator + "RepositorioDeFicheiros" + File.separator + "infoTabArquivo.txt").waitFor();*/
         } catch (Exception ex) {
             javax.swing.JOptionPane.showMessageDialog(null, "Problemas com deletar arquivo temp." + ex);
         }
@@ -314,6 +335,6 @@ public class DAOInfoArquivosTabela {
                 new DAOInfoArquivosTabela(System.getProperty("user.home") + File.separator
                 + "RepositorioDeFicheiros");
 
-        dao.removeInfoFicheiro("f4");
+        dao.removeInfoFicheiro("5");
     }
 }
