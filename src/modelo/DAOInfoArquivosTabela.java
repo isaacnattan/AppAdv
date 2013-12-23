@@ -86,7 +86,12 @@ public class DAOInfoArquivosTabela {
             UVAlert.alertError("Problemas com a escrita de informacao no Arquivo de Informacaes." + ex);
         }
     }
-
+    
+    /**
+     * Cria um novo arquivo de informacao com as informacoes atualizadas, ou seja,
+     * todas as informacoes menos a qua foi deletada.
+     * @param id 
+     */
     public void removeInfoFicheiro(String id) {
         try {
             FileReader fr = new FileReader(infoFicheiro);
@@ -117,7 +122,7 @@ public class DAOInfoArquivosTabela {
             if (infoFicheiro.exists()) {
                 infoFicheiro = null;
             }
-            destroiArquivosDeInformacao();
+            //destroiArquivosDeInformacao();
             // o temporario eh renomeado
             //temp.renameTo(infoFicheiro);
             // entao sede sua referencia 
@@ -145,7 +150,10 @@ public class DAOInfoArquivosTabela {
         // se nao tem nenhum tem entao eh o primeiro
         return 0;
     }
-
+    
+    /**
+     * Atualiza a variavel de acesso rapido.
+     */
     private void carregaVarDAOInfoFicheiro() {
         try {
             DAOInfoFicheiro = null;

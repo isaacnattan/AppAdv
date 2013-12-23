@@ -5,6 +5,7 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -34,6 +35,9 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JTable;
 import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.table.JTableHeader;
 import modelo.DAOInfoArquivosTabela;
 import util.MatrizDinamica2;
@@ -41,6 +45,7 @@ import util.ModeloTabela;
 import util.TableSorter;
 import views.ViewCriaDoc;
 import views.ViewPrincipal;
+import com.birosoft.liquid.LiquidLookAndFeel; 
 
 /**
  * Controlador da view principal do projeto. Determina o fluxo e os métodos
@@ -90,16 +95,22 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
     private MatrizDinamica2<String> arquivosSelecionados;
     private ViewCriaDoc viewCriaDoc;
     private String nomeArquivoCriado;
+    // Mudar Look And Feel
+    protected static final String mac = "com.birosoft.liquid.LiquidLookAndFeel";
+    protected static final String metal = "javax.swing.plaf.metal.MetalLookAndFeel";
+    protected static final String skin = "com.l2fprod.gui.plaf.skin.SkinLookAndFeel";
+    protected static final String windows = "de.muntjak.tinylookandfeel.TinyLookAndFeel";
+    protected static final String kunststoff = "com.incors.plaf.kunststoff.KunststoffLookAndFeel";
 
     public CTViewPrincipal() {
         viewPrincipal = new ViewPrincipal(modelTabFicheiro(), modelTabDocumento());    // Monta a Gui Inteira
         viewCriaDoc = new ViewCriaDoc();
         // Monta os cabecalhos das tabelas para a orenacao
-        //montarComboBoxOrdenarPor();
+        montarComboBoxOrdenarPor();
         //montarComboBoxDocsOrdenarPor();
         addListeners();
         addAtalhos();
-        //addListenerComboBox();
+        addListenerComboBox();
         setSelectionMode();
         criaWorkspace();
         carregaInformacoes();
@@ -130,10 +141,15 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
     }
 
     private void montarComboBoxOrdenarPor() {
-        for (int i = 0; i < cabecalhoTabelaFicheiro.size(); i++) {
-            addInfoComboBoxOrdenarPor(viewPrincipal.getComboBoxFicheiroOrdenarPor(),
-                    cabecalhoTabelaFicheiro.get(i));
-        }
+        /*for (int i = 0; i < cabecalhoTabelaFicheiro.size(); i++) {
+         addInfoComboBoxOrdenarPor(viewPrincipal.getComboBoxFicheiroOrdenarPor(),
+         cabecalhoTabelaFicheiro.get(i));
+         }*/
+        addInfoComboBoxOrdenarPor(viewPrincipal.getComboBoxFicheiroOrdenarPor(), "Liquid");
+        addInfoComboBoxOrdenarPor(viewPrincipal.getComboBoxFicheiroOrdenarPor(), "Metal");
+        addInfoComboBoxOrdenarPor(viewPrincipal.getComboBoxFicheiroOrdenarPor(), "Skin");
+        addInfoComboBoxOrdenarPor(viewPrincipal.getComboBoxFicheiroOrdenarPor(), "Tiny");
+        addInfoComboBoxOrdenarPor(viewPrincipal.getComboBoxFicheiroOrdenarPor(), "Kunststoff");
     }
 
     private void montarComboBoxDocsOrdenarPor() {
@@ -241,6 +257,30 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
     }
 
     /**
+     * @method mudaAparencia mudará a aparência da tela principal do programa
+     * @return void
+     */
+    public void mudaAparencia(String aparencia) {
+        try {
+            UIManager.setLookAndFeel(aparencia);
+            SwingUtilities.updateComponentTreeUI(viewPrincipal);
+        } catch (InstantiationException e) {
+            javax.swing.JOptionPane.showMessageDialog(painelProgress,
+                    "Erro de escolha de look and feel. " + e);
+        } catch (ClassNotFoundException e) {
+            javax.swing.JOptionPane.showMessageDialog(painelProgress,
+                    "Erro de escolha de look and feel. " + e);
+        } catch (UnsupportedLookAndFeelException e) {
+            javax.swing.JOptionPane.showMessageDialog(painelProgress,
+                    "Erro de escolha de look and feel. " + e);
+        } catch (IllegalAccessException e) {
+            javax.swing.JOptionPane.showMessageDialog(painelProgress,
+                    "Erro de escolha de look and feel. " + e);
+        }
+        viewPrincipal.repaint();
+    }
+
+    /**
      * Adiciona listener KeyListener.
      *
      * @param ke
@@ -279,20 +319,37 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
         modeloTabelaDocumento.fireTableDataChanged();
     }
 
-    /*private void addListenerComboBox() {
-     viewPrincipal.getComboBoxDocsOrdenarPor().addActionListener(new ActionListener() {
-     @Override
-     public void actionPerformed(ActionEvent e) {
-     UVAlert.alertSucess(viewPrincipal.getComboBoxDocsOrdenarPor().getSelectedItem().toString());
-     }
-     });
-     viewPrincipal.getComboBoxFicheiroOrdenarPor().addActionListener(new ActionListener() {
-     @Override
-     public void actionPerformed(ActionEvent e) {
-     UVAlert.alertSucess(viewPrincipal.getComboBoxFicheiroOrdenarPor().getSelectedItem().toString());
-     }
-     });
-     }*/
+    private void addListenerComboBox() {
+        /*viewPrincipal.getComboBoxDocsOrdenarPor().addActionListener(new ActionListener() {
+         @Override
+         public void actionPerformed(ActionEvent e) {
+         UVAlert.alertSucess(viewPrincipal.getComboBoxDocsOrdenarPor().getSelectedItem().toString());
+         }
+         });*/
+        viewPrincipal.getComboBoxFicheiroOrdenarPor().addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                //UVAlert.alertSucess(viewPrincipal.getComboBoxFicheiroOrdenarPor().getSelectedItem().toString());
+                if(viewPrincipal.getComboBoxFicheiroOrdenarPor().
+                        getSelectedItem().toString().equals("Liquid")){
+                    mudaAparencia(mac);
+                } else if(viewPrincipal.getComboBoxFicheiroOrdenarPor().
+                        getSelectedItem().toString().equals("Metal")){
+                    mudaAparencia(metal);
+                } else if(viewPrincipal.getComboBoxFicheiroOrdenarPor().
+                        getSelectedItem().toString().equals("Skin")){
+                    mudaAparencia(skin);
+                } else if(viewPrincipal.getComboBoxFicheiroOrdenarPor().
+                        getSelectedItem().toString().equals("Tiny")){
+                    mudaAparencia(windows);
+                } else if(viewPrincipal.getComboBoxFicheiroOrdenarPor().
+                        getSelectedItem().toString().equals("Kunststoff")){
+                    mudaAparencia(windows);
+                }
+            }
+        });
+    }
+
     private void removerFicheiro() {
         File ficheiro = null;
         if (ficheirosSelecionados != null) {
@@ -307,21 +364,6 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
                         DAOInfoArquivosTabela dao = new DAOInfoArquivosTabela(pathWorkspace);
                         dao.removeInfoFicheiro(ficheirosSelecionados.obtemElementoLinha(
                                 ficheirosSelecionados.tamanho - 1, 0).split("-")[1]);
-                        // remove arquivo infoFIcheiro
-                        int retorno;
-                        try {
-                            // apagar os arquivos de informacao
-                            retorno = Runtime.getRuntime().exec("cmd /c del /q /f " + System.getProperty("user.home")
-                                    + File.separator + "RepositorioDeFicheiros" + File.separator + "infoTabFicheiro.txt").waitFor();
-                        } catch (IOException ex) {
-                            javax.swing.JOptionPane.showMessageDialog(viewPrincipal,
-                                    "Problemas ao apagar os arquivos de informação. Usuário especial. " + ex);
-                        } catch (InterruptedException ex) {
-                            javax.swing.JOptionPane.showMessageDialog(viewPrincipal,
-                                    "Problemas ao apagar os arquivos de informação. Usuário especial. " + ex);
-                        }
-                    } else {
-                        javax.swing.JOptionPane.showMessageDialog(painelProgress, "Ação cancelada pelo usuário.");
                     }
                     // Trata multiplas delecoes 
                 } else if (ficheirosSelecionados.tamanho > 1) {

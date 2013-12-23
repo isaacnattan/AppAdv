@@ -31,7 +31,7 @@ public class ViewPrincipal extends JFrame {
     private JPanel painelSuperiorFicheiro;
     private JLabel lblOrganizacaoFicheiros;
     private JLabel lblOrganizacaoDocumentos;
-    //private JLabel lblOrdenarPor;
+    private JLabel lblOrdenarPor;
     private JComboBox jComboOrdenarPor;
     private JPanel painelFicheiro;
     private JButton btAdiocionarFicheiro;
@@ -409,7 +409,7 @@ public class ViewPrincipal extends JFrame {
         constSupPnlDocumentos.weighty = 0;
         constSupPnlDocumentos.insets = new Insets(5, 5, 0, 0);
         painelSuperiorFicheiro.add(lblOrganizacaoFicheiros, constSupPnlDocumentos);
-        /*lblOrdenarPor = new JLabel("Ordenar Por:   ");
+        lblOrdenarPor = new JLabel("Aparência:   ");
          constSupPnlDocumentos.fill = GridBagConstraints.HORIZONTAL;
          constSupPnlDocumentos.gridx = 5;
          constSupPnlDocumentos.gridy = 0;
@@ -417,8 +417,8 @@ public class ViewPrincipal extends JFrame {
          constSupPnlDocumentos.weightx = 0;
          constSupPnlDocumentos.weighty = 0;
          constSupPnlDocumentos.insets = new Insets(5, 0, 0, 0);
-         painelSuperiorFicheiro.add(lblOrdenarPor, constSupPnlDocumentos);*/
-        /*jComboOrdenarPor = new JComboBox();
+         painelSuperiorFicheiro.add(lblOrdenarPor, constSupPnlDocumentos);
+        jComboOrdenarPor = new JComboBox();
          constSupPnlDocumentos.fill = GridBagConstraints.HORIZONTAL;
          constSupPnlDocumentos.gridx = 6;
          constSupPnlDocumentos.gridy = 0;
@@ -426,7 +426,7 @@ public class ViewPrincipal extends JFrame {
          constSupPnlDocumentos.weightx = 0;
          constSupPnlDocumentos.weighty = 0;
          constSupPnlDocumentos.insets = new Insets(5, 0, 0, 5);
-         painelSuperiorFicheiro.add(jComboOrdenarPor, constSupPnlDocumentos);*/
+         painelSuperiorFicheiro.add(jComboOrdenarPor, constSupPnlDocumentos);
     }
 
     private void montarTabelaFicheiro() {
