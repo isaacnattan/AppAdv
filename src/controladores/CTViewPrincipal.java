@@ -45,7 +45,6 @@ import util.ModeloTabela;
 import util.TableSorter;
 import views.ViewCriaDoc;
 import views.ViewPrincipal;
-import com.birosoft.liquid.LiquidLookAndFeel; 
 
 /**
  * Controlador da view principal do projeto. Determina o fluxo e os métodos
@@ -101,6 +100,7 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
     protected static final String skin = "com.l2fprod.gui.plaf.skin.SkinLookAndFeel";
     protected static final String windows = "de.muntjak.tinylookandfeel.TinyLookAndFeel";
     protected static final String kunststoff = "com.incors.plaf.kunststoff.KunststoffLookAndFeel";
+    protected static final String padrao = UIManager.getSystemLookAndFeelClassName();
 
     public CTViewPrincipal() {
         viewPrincipal = new ViewPrincipal(modelTabFicheiro(), modelTabDocumento());    // Monta a Gui Inteira
@@ -145,11 +145,12 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
          addInfoComboBoxOrdenarPor(viewPrincipal.getComboBoxFicheiroOrdenarPor(),
          cabecalhoTabelaFicheiro.get(i));
          }*/
-        addInfoComboBoxOrdenarPor(viewPrincipal.getComboBoxFicheiroOrdenarPor(), "Liquid");
+        //addInfoComboBoxOrdenarPor(viewPrincipal.getComboBoxFicheiroOrdenarPor(), "Liquid");
         addInfoComboBoxOrdenarPor(viewPrincipal.getComboBoxFicheiroOrdenarPor(), "Metal");
-        addInfoComboBoxOrdenarPor(viewPrincipal.getComboBoxFicheiroOrdenarPor(), "Skin");
-        addInfoComboBoxOrdenarPor(viewPrincipal.getComboBoxFicheiroOrdenarPor(), "Tiny");
-        addInfoComboBoxOrdenarPor(viewPrincipal.getComboBoxFicheiroOrdenarPor(), "Kunststoff");
+        //addInfoComboBoxOrdenarPor(viewPrincipal.getComboBoxFicheiroOrdenarPor(), "Skin");
+        //addInfoComboBoxOrdenarPor(viewPrincipal.getComboBoxFicheiroOrdenarPor(), "Tiny");
+        //addInfoComboBoxOrdenarPor(viewPrincipal.getComboBoxFicheiroOrdenarPor(), "Kunststoff");
+        addInfoComboBoxOrdenarPor(viewPrincipal.getComboBoxFicheiroOrdenarPor(), "Padrão");
     }
 
     private void montarComboBoxDocsOrdenarPor() {
@@ -330,38 +331,40 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
             @Override
             public void actionPerformed(ActionEvent e) {
                 //UVAlert.alertSucess(viewPrincipal.getComboBoxFicheiroOrdenarPor().getSelectedItem().toString());
-                if(viewPrincipal.getComboBoxFicheiroOrdenarPor().
-                        getSelectedItem().toString().equals("Liquid")){
+                if (viewPrincipal.getComboBoxFicheiroOrdenarPor().
+                        getSelectedItem().toString().equals("Liquid")) {
                     mudaAparencia(mac);
-                } else if(viewPrincipal.getComboBoxFicheiroOrdenarPor().
-                        getSelectedItem().toString().equals("Metal")){
+                } else if (viewPrincipal.getComboBoxFicheiroOrdenarPor().
+                        getSelectedItem().toString().equals("Metal")) {
                     mudaAparencia(metal);
-                } else if(viewPrincipal.getComboBoxFicheiroOrdenarPor().
-                        getSelectedItem().toString().equals("Skin")){
+                } else if (viewPrincipal.getComboBoxFicheiroOrdenarPor().
+                        getSelectedItem().toString().equals("Skin")) {
                     mudaAparencia(skin);
-                } else if(viewPrincipal.getComboBoxFicheiroOrdenarPor().
-                        getSelectedItem().toString().equals("Tiny")){
+                } else if (viewPrincipal.getComboBoxFicheiroOrdenarPor().
+                        getSelectedItem().toString().equals("Tiny")) {
                     mudaAparencia(windows);
-                } else if(viewPrincipal.getComboBoxFicheiroOrdenarPor().
-                        getSelectedItem().toString().equals("Kunststoff")){
+                } else if (viewPrincipal.getComboBoxFicheiroOrdenarPor().
+                        getSelectedItem().toString().equals("Kunststoff")) {
                     mudaAparencia(windows);
+                } else if (viewPrincipal.getComboBoxFicheiroOrdenarPor().
+                        getSelectedItem().toString().equals("Padrão")) {
+                    mudaAparencia(padrao);
                 }
             }
         });
     }
 
     private void removerFicheiro() {
-        File ficheiro = null;
         if (ficheirosSelecionados != null) {
             if (ficheirosSelecionados.tamanho > 0) {
+                DAOInfoArquivosTabela dao = new DAOInfoArquivosTabela(pathWorkspace);
                 if (ficheirosSelecionados.tamanho == 1) {
                     if (mensagemDeConfirmacaoRemover(true) == JOptionPane.YES_OPTION) {
-                        ficheiro = new File(ficheirosSelecionados.obtemElementoLinha(0, 5).replace(";", "").trim());
+                        File ficheiro = new File(ficheirosSelecionados.obtemElementoLinha(0, 5).replace(";", "").trim());
                         deleteDir(ficheiro);
                         // remover o registro do cache de informacao
                         removeInfoCash(ficheiro, true);
                         // remover tambem do arquivo de informacao
-                        DAOInfoArquivosTabela dao = new DAOInfoArquivosTabela(pathWorkspace);
                         dao.removeInfoFicheiro(ficheirosSelecionados.obtemElementoLinha(
                                 ficheirosSelecionados.tamanho - 1, 0).split("-")[1]);
                     }
@@ -373,14 +376,19 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
                         for (int i = 0; i < ficheirosSelecionados.tamanho; i++) {
                             deleteDir(new File(ficheirosSelecionados.obtemElementoLinha(i, 5).replace(";", "").trim()));
                             // remover o registro dos ficheiros
-                            removeInfoCash(ficheiro, true);
+                            removeInfoCash(new File(ficheirosSelecionados.
+                                    obtemElementoLinha(i, 5).replace(";", "").trim()), true);
                             // remover tambem do arquivo de informacao
+                            dao.removeInfoFicheiro(ficheirosSelecionados.
+                                    obtemElementoLinha(i, 5).replace(";", "").trim());
                         }
                     }
-                    modeloTabelaDocumento.limparTabela();   // Retira todos os registros da tabela de documentos
-                    modeloTabelaDocumento.fireTableDataChanged();
-                    modeloTabelaFicheiro.fireTableDataChanged();
                 }
+                modeloTabelaDocumento.limparTabela();   // Retira todos os registros da tabela de documentos
+                modeloTabelaDocumento.fireTableDataChanged();
+                modeloTabelaFicheiro.limparTabela();
+                carregaFicheiros();
+                modeloTabelaFicheiro.fireTableDataChanged();
             } else {
                 javax.swing.JOptionPane.showMessageDialog(viewPrincipal,
                         "Selecione antes o ficheiro que deseja remover.");

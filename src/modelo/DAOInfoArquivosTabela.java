@@ -86,15 +86,23 @@ public class DAOInfoArquivosTabela {
             UVAlert.alertError("Problemas com a escrita de informacao no Arquivo de Informacaes." + ex);
         }
     }
-    
+
     /**
-     * Cria um novo arquivo de informacao com as informacoes atualizadas, ou seja,
-     * todas as informacoes menos a qua foi deletada.
-     * @param id 
+     * Cria um novo arquivo de informacao com as informacoes atualizadas, ou
+     * seja, todas as informacoes menos a qua foi deletada.
+     *
+     * @param id
      */
     public void removeInfoFicheiro(String id) {
         try {
-            FileReader fr = new FileReader(infoFicheiro);
+            FileReader fr = null;
+            // indica a partir do qual temp/info sera reescrito o temp subsequente
+            if (getNumTempF() >= 0) {
+                fr = new FileReader(pathWorkspace + File.separator
+                        + "tempF-" + getNumTempF() + ".txt");
+            } else {
+                fr = new FileReader(infoFicheiro);
+            }
             BufferedReader br = new BufferedReader(fr);
             temp = new File(pathWorkspace + File.separator + "tempF-" + getNewTempF() + ".txt");
             if (!temp.exists()) {
@@ -136,21 +144,44 @@ public class DAOInfoArquivosTabela {
         }
     }
 
+    /**
+     * Retorna o último temp utilizado.
+     *
+     * @return void
+     */
+    public int getNumTempF() {
+        String[] arquivos = new File(pathWorkspace).list();
+        int numTemp = - 1;  // permite detectar o 0
+        for (int i = 0; i < arquivos.length; i++) {
+            if (arquivos[i].contains("tempF-")) {
+                if (Integer.parseInt(arquivos[i].substring(6).
+                        replace(".", "/").split("/")[0]) > numTemp) {
+                    numTemp = Integer.parseInt(arquivos[i].
+                            substring(6).replace(".", "/").split("/")[0]);
+                }
+            }
+        }
+        return numTemp;     // se -1 nao existe temps ainda
+    }
+
     private int getNewTempF() {
         File workspsce = new File(pathWorkspace);
         String[] temps = workspsce.list();
+        int nextNum = 0;
         for (int i = 0; i < temps.length; i++) {
             if (temps[i].contains(".")) {
                 if (temps[i].contains("temp")) {
                     // retorna o proximo numero a nomear o proximo temp
-                    return Integer.parseInt(temps[i].replace(".", "/").split("/")[0].split("-")[1]) + 1;
+                    if (Integer.parseInt(temps[i].replace(".", "/").split("/")[0].split("-")[1]) >= nextNum) {
+                        nextNum = Integer.parseInt(temps[i].replace(".", "/").split("/")[0].split("-")[1]) + 1;
+                    }
                 }
             }
         }
         // se nao tem nenhum tem entao eh o primeiro
-        return 0;
+        return nextNum;
     }
-    
+
     /**
      * Atualiza a variavel de acesso rapido.
      */
@@ -208,12 +239,12 @@ public class DAOInfoArquivosTabela {
         return null;
     }
 
-    private void destroiArquivosDeInformacao() {
+    public void destroiArquivosDeInformacao() {
         try {
             Runtime.getRuntime().exec("cmd /c del /q /f " + System.getProperty("user.home")
                     + File.separator + "RepositorioDeFicheiros" + File.separator + "infoTabFicheiro.txt").waitFor();
-            /*Runtime.getRuntime().exec("cmd /c del /q /f " + System.getProperty("user.home")
-             + File.separator + "RepositorioDeFicheiros" + File.separator + "infoTabArquivo.txt").waitFor();*/
+            Runtime.getRuntime().exec("cmd /c del /q /f " + System.getProperty("user.home")
+                    + File.separator + "RepositorioDeFicheiros" + File.separator + "infoTabArquivo.txt").waitFor();
         } catch (Exception ex) {
             javax.swing.JOptionPane.showMessageDialog(null, "Problemas com deletar arquivo temp." + ex);
         }
@@ -343,6 +374,6 @@ public class DAOInfoArquivosTabela {
                 new DAOInfoArquivosTabela(System.getProperty("user.home") + File.separator
                 + "RepositorioDeFicheiros");
 
-        dao.removeInfoFicheiro("5");
+        dao.getNumTempF();
     }
 }

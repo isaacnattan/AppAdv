@@ -7,11 +7,19 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JFrame;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
+import modelo.DAOInfoArquivosTabela;
 import util.AutenticacaoHardware;
 import views.ViewLogin;
 
@@ -61,6 +69,7 @@ public class Main extends CTPai {
     private void validaUser() {
         if (user.equals(userDefault) && pass.equals(passDefault)) {
             sessaoLogin.dispose();
+            atualizaTemps();
             new CTViewPrincipal();
         } else if (user.equals(userDefault) && pass.equals(passEspecial)) {
             sessaoLogin.dispose();
@@ -84,6 +93,47 @@ public class Main extends CTPai {
         sessaoLogin.getButtonOk().addKeyListener(this);
         sessaoLogin.getButtonCancel().addMouseListener(this);
         sessaoLogin.getButtonOk().addMouseListener(this);
+    }
+
+    private void atualizaTemps() {
+        DAOInfoArquivosTabela dao = new DAOInfoArquivosTabela(System.
+                getProperty("user.home") + File.separator + "RepositorioDeFicheiros");
+        File temp = new File(System.
+                getProperty("user.home") + File.separator + "RepositorioDeFicheiros"
+                + File.separator + "tempF-" + dao.getNumTempF() + ".txt");
+        // Deleta o arquivo de Ficheiros atual
+        dao.destroiArquivosDeInformacao();
+        try {
+            File infoArq = new File(System.
+                    getProperty("user.home") + File.separator + "RepositorioDeFicheiros"
+                    + File.separator + "infoFicheiro.txt");
+            FileReader fr = new FileReader(temp);
+            BufferedReader br = new BufferedReader(fr);
+            FileWriter fw = new FileWriter(infoArq, true);
+            BufferedWriter bw = new BufferedWriter(fw);
+            while (br.ready()) {
+                // Escreve tudo que ta no ultimo temp no novo infoFicheiro.txt
+                bw.write(br.readLine());
+            }
+            // apaga todos os outros temps
+            String[] workspace = new File(System.
+                    getProperty("user.home") + File.separator + "RepositorioDeFicheiros").list();
+            for (int i = 0; i < workspace.length; i++) {
+                if (workspace[i].contains(".")) {
+                    if (workspace[i].replace(".", "/").split("/")[0].contains("tempF")) {
+                        new File(System.
+                                getProperty("user.home") + File.separator
+                                + "RepositorioDeFicheiros" + workspace[i]).delete();
+                    }
+                }
+            }
+        } catch (FileNotFoundException ex) {
+            javax.swing.JOptionPane.showMessageDialog(sessaoLogin,
+                    "Problemas ao inicializar recriação de arquivos de informação. " + ex);
+        } catch (IOException ex) {
+            javax.swing.JOptionPane.showMessageDialog(sessaoLogin,
+                    "Problemas ao inicializar recriação de arquivos de informação. " + ex);
+        }
     }
 
     @Override
