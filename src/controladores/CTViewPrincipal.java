@@ -131,7 +131,6 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
     /**
      * Método responsável por adicionar informação ao comboBox passado por
      * parametro.
-     *
      * @param combo
      * @param info
      * @return void
@@ -795,7 +794,7 @@ public class CTViewPrincipal extends CTPai implements MouseListener, KeyListener
         MatrizDinamica2<String> arquivosFicheiro = new MatrizDinamica2<String>();
         for (int i = 0; i < cacheArquivos.tamanho; i++) {
             String[] pedacos = cacheArquivos.obtemElementoLinha(i, 6).replace("\\", "/").split("/");
-            if (pedacos[4].contains(nomeFicheiro)) {
+            if (pedacos[4].equals(nomeFicheiro)) {
                 ArrayList<String> linha = new ArrayList<String>();
                 linha.add(cacheArquivos.obtemElementoLinha(i, 0));
                 linha.add(cacheArquivos.obtemElementoLinha(i, 1));

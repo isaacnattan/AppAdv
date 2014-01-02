@@ -90,7 +90,6 @@ public class DAOInfoArquivosTabela {
     /**
      * Cria um novo arquivo de informacao com as informacoes atualizadas, ou
      * seja, todas as informacoes menos a qua foi deletada.
-     *
      * @param id
      */
     public void removeInfoFicheiro(String id) {
